@@ -19,11 +19,9 @@ $(NAME): $(OBJS)
 
 clean:
 	rm -rf $(OBJDIR)
-	$(MAKE) -C $(LIBMLX) clean
 
 fclean: clean
 	rm -f $(NAME)
-	$(MAKE) -C $(LIBMLX) fclean
 
 re: clean all
 
