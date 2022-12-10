@@ -1,5 +1,6 @@
 NAME	:= nmap
-#CFLAGS	:= -Wall -Wextra -Werror -Ofast
+CFLAGS	:= -Wall -Wextra -Ofast
+CFLAGS	+= -Werror
 
 HEADERS	:= -I ./include
 LIBS	:= -lpcap -lpthread
