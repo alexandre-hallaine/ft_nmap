@@ -15,13 +15,12 @@
 struct addrinfo *get_addr(char *host)
 {
 	struct addrinfo hints = {0}, *res = NULL;
-	char *port = "80";
 
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_CANONNAME;
 
-	if (getaddrinfo(host, port, &hints, &res) != 0)
+	if (getaddrinfo(host, NULL, &hints, &res) != 0)
 		error(1, "getaddrinfo: %s\n", gai_strerror(errno));
 	return res;
 }
@@ -46,20 +45,29 @@ struct sockaddr_in *get_ifaddr()
 
 void send_packet(struct addrinfo *res, struct sockaddr_in *host)
 {
-	char *datagram = calloc(4096, sizeof(char));
-	struct tcphdr *tcp_to = (struct tcphdr*)(datagram);
-	struct pseudo_header psh = {0};
 	int sock = -1;
-	
+	srand(time(0));
+
 	// create socket
 	// printf("Creating socket with family %d, type %d, protocol %d\n", res->ai_family, res->ai_socktype, res->ai_protocol);
 	if ((sock = socket(res->ai_family, SOCK_RAW, res->ai_protocol)) == -1)
 		error(1, "socket: %s\n", strerror(errno));
 
+	// socket options
+	struct timeval timeout = {(long)1, 0};
+	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
+		error(1, "setsockopt: %s\n", strerror(errno));
+
+	char datagram[4096] = {0};
+	struct tcphdr *tcp_to = (struct tcphdr*)(datagram);
+	struct pseudo_header psh = {0};
+	short save_port = -1;
+	int port = 80;
+
+	printf("Scanning port %d\n", port);
 	// TCP header configuration
-	srand(time(0));
-	tcp_to->source = htons(rand() % (5000 - 100 + 1) + 100);
-	tcp_to->dest = htons(80);
+	save_port = tcp_to->source = htons(rand() % (5000 - 100 + 1) + 100);
+	tcp_to->dest = htons(port);
 	tcp_to->seq = htonl(0);
 	tcp_to->doff = 10;
 	tcp_to->syn = 1;
@@ -71,7 +79,7 @@ void send_packet(struct addrinfo *res, struct sockaddr_in *host)
 	psh.protocol = IPPROTO_TCP;
 	psh.tcp_length = htons(sizeof(struct tcphdr) + OPT_SIZE);
 	// fill pseudo packet
-	char* pseudogram = malloc(sizeof(struct pseudo_header) + sizeof(struct tcphdr) + OPT_SIZE);
+	char pseudogram[sizeof(struct pseudo_header) + sizeof(struct tcphdr) + OPT_SIZE] = {0};
 	memcpy(pseudogram, (char*)&psh, sizeof(struct pseudo_header));
 	memcpy(pseudogram + sizeof(struct pseudo_header), tcp_to, sizeof(struct tcphdr) + OPT_SIZE);
 
@@ -96,6 +104,51 @@ void send_packet(struct addrinfo *res, struct sockaddr_in *host)
 	printf("\nSending SYN packet to %s:%d\n\n", inet_ntoa(*(struct in_addr *)&((struct sockaddr_in *)res->ai_addr)->sin_addr), ntohs(tcp_to->dest));
 	if (sendto(sock, datagram, sizeof(struct tcphdr) + OPT_SIZE, 0, res->ai_addr, res->ai_addrlen) < 0)
 		error(1, "sendto: %s\n", strerror(errno));
+
+	freeaddrinfo(res);
+	while (1)
+	{
+		char buffer[4096] = {0};
+		int ret = 0;
+
+		ret = recvfrom(sock, buffer, 4096, 0, NULL, NULL);
+		if (ret < 0)
+		{
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+			{
+				printf("No packet received, FILTERED\n\n");
+				break;
+			}
+			else
+				error(1, "recvfrom: %s\n", strerror(errno));
+		}
+		else if (ret == 0)
+		{
+			printf("No packet received, FILTERED\n\n");
+			break;
+		}
+
+		struct iphdr *ip = (struct iphdr*)buffer;
+		struct tcphdr *tcp = (struct tcphdr*)(buffer + (ip->ihl * 4));
+
+		if (ntohs(tcp->dest) != ntohs(save_port))
+			continue;
+		if (tcp->syn && tcp->ack)
+		{
+			printf("Received SYN-ACK packet, OPEN, from %s:%d\n\n", inet_ntoa(*(struct in_addr *)&ip->saddr), ntohs(tcp->source));
+			break;
+		}
+		else if (tcp->rst)
+		{
+			printf("Received RST packet, CLOSED, from %s:%d\n\n", inet_ntoa(*(struct in_addr *)&ip->saddr), ntohs(tcp->source));
+			break;
+		}
+		else
+		{
+			printf("Unexpected packet received, from %s:%d\n\n", inet_ntoa(*(struct in_addr *)&ip->saddr), ntohs(tcp->source));
+			break;
+		}
+	}
 }
 
 int main(int ac, char **av)
