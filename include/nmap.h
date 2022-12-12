@@ -2,6 +2,7 @@
 #define NMAP_H
 
 #define OPT_SIZE 20
+#define BUFFER_SIZE 4096
 
 struct pseudo_header
 {
@@ -12,7 +13,26 @@ struct pseudo_header
 	unsigned short tcp_length;
 };
 
-void error(int code, char *fmt, ...);
-unsigned short checksum(unsigned short *addr, size_t len);
-int ft_strcmp(char *s1, char *s2);
+enum state
+{
+	FILTERED = 0,
+	OPEN,
+	CLOSED,
+	UNEXPECTED,
+	OPEN_FILTERED,
+	CLOSED_FILTERED,
+	OPEN_OR_FILTERED,
+	CLOSED_OR_FILTERED,
+	UNFILTERED,
+};
+
+typedef struct
+{
+	int sock;
+	struct addrinfo *res;
+	struct sockaddr_in *host;
+} t_data;
+
+extern t_data g_data;
+
 #endif

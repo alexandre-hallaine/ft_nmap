@@ -8,125 +8,42 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <netinet/ip.h>
-#include <ifaddrs.h>
 
 #include "nmap.h"
+#include "functions.h"
 
-struct addrinfo *get_addr(char *host)
+t_data g_data = {0};
+
+void result(char *answer)
 {
-	struct addrinfo hints = {0}, *res = NULL;
-
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_CANONNAME;
-
-	if (getaddrinfo(host, NULL, &hints, &res) != 0)
-		error(1, "getaddrinfo: %s\n", gai_strerror(errno));
-	return res;
-}
-
-struct sockaddr_in *get_ifaddr()
-{
-	struct ifaddrs *addrs = NULL, *tmp = NULL;
-	if (getifaddrs(&addrs) == -1)
-		error(1, "getifaddrs: %s\n", strerror(errno));
-	for (tmp = addrs; tmp != NULL; tmp = tmp->ifa_next)
+	printf("\n");
+	printf("Scan results:\n");
+	for (int i = 0; i < 1024; i++)
 	{
-		if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET && ft_strcmp(tmp->ifa_name, "eth0") == 0)
-		{
-			struct sockaddr_in *pAddr = (struct sockaddr_in *)tmp->ifa_addr;
-			freeifaddrs(addrs);
-			return pAddr;
-		}
+		if (answer[i] == OPEN)
+			printf("%d: OPEN\n", i);
+		else if (answer[i] == CLOSED)
+			printf("%d: CLOSED\n", i);
+		else if (answer[i] == UNEXPECTED)
+			printf("%d: UNEXPECTED\n", i);
 	}
-	freeifaddrs(addrs);
-	return NULL;
 }
 
-void send_packet(struct addrinfo *res, struct sockaddr_in *host)
+void check_packet(char *answer, int save_port, int idx)
 {
-	int sock = -1;
-	srand(time(0));
-
-	// create socket
-	// printf("Creating socket with family %d, type %d, protocol %d\n", res->ai_family, res->ai_socktype, res->ai_protocol);
-	if ((sock = socket(res->ai_family, SOCK_RAW, res->ai_protocol)) == -1)
-		error(1, "socket: %s\n", strerror(errno));
-
-	// socket options
-	struct timeval timeout = {(long)1, 0};
-	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
-		error(1, "setsockopt: %s\n", strerror(errno));
-
-	char datagram[4096] = {0};
-	struct tcphdr *tcp_to = (struct tcphdr*)(datagram);
-	struct pseudo_header psh = {0};
-	short save_port = -1;
-	int port = 80;
-
-	printf("Scanning port %d\n", port);
-	// TCP header configuration
-	save_port = tcp_to->source = htons(rand() % (5000 - 100 + 1) + 100);
-	tcp_to->dest = htons(port);
-	tcp_to->seq = htonl(0);
-	tcp_to->doff = 10;
-	tcp_to->syn = 1;
-	tcp_to->window = htons(5840);
-
-	// TCP pseudo header for checksum calculation
-	psh.source_address = host->sin_addr.s_addr;
-	psh.dest_address = ((struct sockaddr_in *)(res->ai_addr))->sin_addr.s_addr;
-	psh.protocol = IPPROTO_TCP;
-	psh.tcp_length = htons(sizeof(struct tcphdr) + OPT_SIZE);
-	// fill pseudo packet
-	char pseudogram[sizeof(struct pseudo_header) + sizeof(struct tcphdr) + OPT_SIZE] = {0};
-	memcpy(pseudogram, (char*)&psh, sizeof(struct pseudo_header));
-	memcpy(pseudogram + sizeof(struct pseudo_header), tcp_to, sizeof(struct tcphdr) + OPT_SIZE);
-
-	// TCP options are only set in the SYN packet
-	// ---- set mss ----
-	datagram[20] = 0x02;
-	datagram[21] = 0x04;
-	int16_t mss = htons(48); // mss value
-	memcpy(datagram + 22, &mss, sizeof(int16_t));
-	// ---- enable SACK ----
-	datagram[24] = 0x04;
-	datagram[25] = 0x02;
-	// do the same for the pseudo header
-	pseudogram[32] = 0x02;
-	pseudogram[33] = 0x04;
-	memcpy(pseudogram + 34, &mss, sizeof(int16_t));
-	pseudogram[36] = 0x04;
-	pseudogram[37] = 0x02;
-
-	tcp_to->check = checksum((unsigned short*)pseudogram, sizeof(struct pseudo_header) + sizeof(struct tcphdr) + OPT_SIZE);
-
-	printf("\nSending SYN packet to %s:%d\n\n", inet_ntoa(*(struct in_addr *)&((struct sockaddr_in *)res->ai_addr)->sin_addr), ntohs(tcp_to->dest));
-	if (sendto(sock, datagram, sizeof(struct tcphdr) + OPT_SIZE, 0, res->ai_addr, res->ai_addrlen) < 0)
-		error(1, "sendto: %s\n", strerror(errno));
-
-	freeaddrinfo(res);
 	while (1)
 	{
-		char buffer[4096] = {0};
+		char buffer[BUFFER_SIZE] = {0};
 		int ret = 0;
 
-		ret = recvfrom(sock, buffer, 4096, 0, NULL, NULL);
+		ret = recvfrom(g_data.sock, buffer, 4096, 0, NULL, NULL);
 		if (ret < 0)
-		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
-			{
-				printf("No packet received, FILTERED\n\n");
 				break;
-			}
 			else
 				error(1, "recvfrom: %s\n", strerror(errno));
-		}
 		else if (ret == 0)
-		{
-			printf("No packet received, FILTERED\n\n");
 			break;
-		}
 
 		struct iphdr *ip = (struct iphdr*)buffer;
 		struct tcphdr *tcp = (struct tcphdr*)(buffer + (ip->ihl * 4));
@@ -134,21 +51,74 @@ void send_packet(struct addrinfo *res, struct sockaddr_in *host)
 		if (ntohs(tcp->dest) != ntohs(save_port))
 			continue;
 		if (tcp->syn && tcp->ack)
-		{
-			printf("Received SYN-ACK packet, OPEN, from %s:%d\n\n", inet_ntoa(*(struct in_addr *)&ip->saddr), ntohs(tcp->source));
-			break;
-		}
+			answer[idx] = OPEN;
 		else if (tcp->rst)
-		{
-			printf("Received RST packet, CLOSED, from %s:%d\n\n", inet_ntoa(*(struct in_addr *)&ip->saddr), ntohs(tcp->source));
-			break;
-		}
+			answer[idx] = CLOSED;
 		else
-		{
-			printf("Unexpected packet received, from %s:%d\n\n", inet_ntoa(*(struct in_addr *)&ip->saddr), ntohs(tcp->source));
-			break;
-		}
+			answer[idx] = UNEXPECTED;
 	}
+}
+
+void send_packet()
+{
+	srand(time(0));
+	char answer[1026] = {0};
+	short save_port = -1;
+
+	struct pseudo_header psh = {0};
+
+	// TCP pseudo header for checksum calculation
+	psh.source_address = g_data.host->sin_addr.s_addr;
+	psh.dest_address = ((struct sockaddr_in *)(g_data.res->ai_addr))->sin_addr.s_addr;
+	psh.protocol = IPPROTO_TCP;
+	psh.tcp_length = htons(sizeof(struct tcphdr) + OPT_SIZE);
+	// fill pseudo packet
+	char pseudogram[sizeof(struct pseudo_header) + sizeof(struct tcphdr) + OPT_SIZE] = {0};
+	memcpy(pseudogram, (char*)&psh, sizeof(struct pseudo_header));
+
+	for (int port = 1; port < 1025; port++)
+	{
+		char datagram[BUFFER_SIZE] = {0};
+		struct tcphdr *tcp_to = (struct tcphdr*)(datagram);
+		
+		printf("Scanning port %d\r", port);
+		// TCP header configuration
+		save_port = tcp_to->source = htons(rand() % (65000 - 100 + 1) + 100);
+		tcp_to->dest = htons(port);
+		tcp_to->seq = htonl(0);
+		tcp_to->doff = 10;
+		tcp_to->syn = 1;
+		tcp_to->window = htons(5840);
+
+		// TCP pseudo header for checksum calculation
+		memcpy(pseudogram + sizeof(struct pseudo_header), tcp_to, sizeof(struct tcphdr) + OPT_SIZE);
+
+		// TCP options are only set in the SYN packet
+		// ---- set mss ----
+		datagram[20] = 0x02;
+		datagram[21] = 0x04;
+		int16_t mss = htons(48); // mss value
+		memcpy(datagram + 22, &mss, sizeof(int16_t));
+		// ---- enable SACK ----
+		datagram[24] = 0x04;
+		datagram[25] = 0x02;
+		// do the same for the pseudo header
+		pseudogram[32] = 0x02;
+		pseudogram[33] = 0x04;
+		memcpy(pseudogram + 34, &mss, sizeof(int16_t));
+		pseudogram[36] = 0x04;
+		pseudogram[37] = 0x02;
+
+		tcp_to->check = checksum((unsigned short*)pseudogram, sizeof(struct pseudo_header) + sizeof(struct tcphdr) + OPT_SIZE);
+
+		// printf("\nSending SYN packet to %s:%d\n\n", inet_ntoa(*(struct in_addr *)&((struct sockaddr_in *)res->ai_addr)->sin_addr), ntohs(tcp_to->dest));
+		if (sendto(g_data.sock, datagram, sizeof(struct tcphdr) + OPT_SIZE, 0, g_data.res->ai_addr, g_data.res->ai_addrlen) < 0)
+			error(1, "sendto: %s\n", strerror(errno));
+
+		check_packet(answer, save_port, port);
+	}
+	result(answer);
+	freeaddrinfo(g_data.res);
 }
 
 int main(int ac, char **av)
@@ -159,20 +129,19 @@ int main(int ac, char **av)
 	if (!av[1] || ac != 2)
 		error(1, "usage: %s <host>", av[0]);
 
-	char ip[INET6_ADDRSTRLEN];
-	struct addrinfo *res = get_addr(av[1]);
-	struct sockaddr_in *host = get_ifaddr();
-	if (!host)
-		error(1, "get_ifaddr: Interface not found\n");
+	g_data.res = get_addr(av[1]);
+	g_data.host = get_ifaddr();
 
-	for (struct addrinfo *p = res; p != NULL; p = p->ai_next) {
-		if (p->ai_family == AF_INET6)
-        	inet_ntop(p->ai_family, &((struct sockaddr_in6 *)p->ai_addr)->sin6_addr, ip, sizeof(ip));
-		else
-			inet_ntop(p->ai_family, &((struct sockaddr_in *)p->ai_addr)->sin_addr, ip, sizeof(ip));
-        printf("%s with IPV%d: %s\n", av[1], p->ai_family == AF_INET ? 4 : 6, ip);
-    }
+	// char ip[INET6_ADDRSTRLEN];
+	// for (struct addrinfo *p = res; p != NULL; p = p->ai_next) {
+	// 	if (p->ai_family == AF_INET6)
+    //     	inet_ntop(p->ai_family, &((struct sockaddr_in6 *)p->ai_addr)->sin6_addr, ip, sizeof(ip));
+	// 	else
+	// 		inet_ntop(p->ai_family, &((struct sockaddr_in *)p->ai_addr)->sin_addr, ip, sizeof(ip));
+    //     printf("%s with IPV%d: %s\n", av[1], p->ai_family == AF_INET ? 4 : 6, ip);
+    // }
 
-	send_packet(res, host);
+	create_socket();
+	send_packet();
 	return 0;
 }
