@@ -18,11 +18,17 @@ void result(char *answer)
 {
 	printf("\n");
 	printf("Scan results:\n");
-	for (int i = 0; i < 1024; i++)
+	if (g_data.closed > 50)
+		printf("Not shown: %d closed ports\n", g_data.closed);
+	if (g_data.filtered > 50)
+		printf("Not shown: %d filtered ports\n", g_data.filtered);
+	for (int i = 1; i < 1025; i++)
 	{
-		if (answer[i] == OPEN)
+		if (answer[i] == FILTERED && g_data.filtered < 50)
+			printf("%d: FILTERED\n", i);
+		else if (answer[i] == OPEN)
 			printf("%d: OPEN\n", i);
-		else if (answer[i] == CLOSED)
+		else if (answer[i] == CLOSED && g_data.closed < 50)
 			printf("%d: CLOSED\n", i);
 		else if (answer[i] == UNEXPECTED)
 			printf("%d: UNEXPECTED\n", i);
@@ -39,23 +45,42 @@ void check_packet(char *answer, int save_port, int idx)
 		ret = recvfrom(g_data.sock, buffer, 4096, 0, NULL, NULL);
 		if (ret < 0)
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
+			{
+				g_data.filtered += 1;
 				break;
+			}
 			else
 				error(1, "recvfrom: %s\n", strerror(errno));
 		else if (ret == 0)
+		{
+			g_data.filtered += 1;
 			break;
+		}
 
 		struct iphdr *ip = (struct iphdr*)buffer;
 		struct tcphdr *tcp = (struct tcphdr*)(buffer + (ip->ihl * 4));
 
 		if (ntohs(tcp->dest) != ntohs(save_port))
 			continue;
+
+		// printf("packet syn:%d, ack:%d, rst:%d, fin:%d for port:%d\n" , tcp->syn, tcp->ack, tcp->rst, tcp->fin, idx);
 		if (tcp->syn && tcp->ack)
+		{
 			answer[idx] = OPEN;
-		else if (tcp->rst)
+			break;
+		}
+		else if (tcp->rst && tcp->ack)
+		{
 			answer[idx] = CLOSED;
+			g_data.closed += 1;
+			break;
+		}
 		else
+		{
+			printf("Unexpected packet syn:%d, ack:%d, rst:%d, fin:%d for port:%d\n" , tcp->syn, tcp->ack, tcp->rst, tcp->fin, idx);
 			answer[idx] = UNEXPECTED;
+			break;
+		}
 	}
 }
 
@@ -88,7 +113,7 @@ void send_packet()
 		tcp_to->seq = htonl(0);
 		tcp_to->doff = 10;
 		tcp_to->syn = 1;
-		tcp_to->window = htons(5840);
+		tcp_to->window = htons(64240);
 
 		// TCP pseudo header for checksum calculation
 		memcpy(pseudogram + sizeof(struct pseudo_header), tcp_to, sizeof(struct tcphdr) + OPT_SIZE);
@@ -97,7 +122,7 @@ void send_packet()
 		// ---- set mss ----
 		datagram[20] = 0x02;
 		datagram[21] = 0x04;
-		int16_t mss = htons(48); // mss value
+		int16_t mss = htons(1460); // mss value
 		memcpy(datagram + 22, &mss, sizeof(int16_t));
 		// ---- enable SACK ----
 		datagram[24] = 0x04;

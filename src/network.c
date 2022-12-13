@@ -47,7 +47,7 @@ void create_socket()
 		error(1, "socket: %s\n", strerror(errno));
 
 	// socket options
-	struct timeval timeout = {(long)0, 10000};
+	struct timeval timeout = {(long)0, 500000};
 	if (setsockopt(g_data.sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
 		error(1, "setsockopt: %s\n", strerror(errno));
 }

@@ -31,6 +31,8 @@ typedef struct
 	int sock;
 	struct addrinfo *res;
 	struct sockaddr_in *host;
+	int closed;
+	int filtered;
 } t_data;
 
 extern t_data g_data;
