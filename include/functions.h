@@ -7,8 +7,8 @@ unsigned short checksum(unsigned short *addr, size_t len);
 int ft_strcmp(char *s1, char *s2);
 
 // network.c
-struct sockaddr_in *get_ifaddr();
-struct addrinfo *get_addr(char *host);
+struct addrinfo get_addr(char *host);
+uint32_t get_own_addr();
 void create_socket();
 
 #endif

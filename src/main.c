@@ -63,7 +63,7 @@ void check_packet(char *answer, int save_port, int idx)
 		if (ntohs(tcp->dest) != ntohs(save_port))
 			continue;
 
-		// printf("packet syn:%d, ack:%d, rst:%d, fin:%d for port:%d\n" , tcp->syn, tcp->ack, tcp->rst, tcp->fin, idx);
+		printf("packet syn:%d, ack:%d, rst:%d, fin:%d for port:%d\n" , tcp->syn, tcp->ack, tcp->rst, tcp->fin, idx);
 		if (tcp->syn && tcp->ack)
 		{
 			answer[idx] = OPEN;
@@ -93,8 +93,8 @@ void send_packet()
 	struct pseudo_header psh = {0};
 
 	// TCP pseudo header for checksum calculation
-	psh.source_address = g_data.host->sin_addr.s_addr;
-	psh.dest_address = ((struct sockaddr_in *)(g_data.res->ai_addr))->sin_addr.s_addr;
+	psh.source_address = g_data.own_addr;
+	psh.dest_address = ((struct sockaddr_in *)(g_data.res.ai_addr))->sin_addr.s_addr;
 	psh.protocol = IPPROTO_TCP;
 	psh.tcp_length = htons(sizeof(struct tcphdr) + OPT_SIZE);
 	// fill pseudo packet
@@ -137,13 +137,12 @@ void send_packet()
 		tcp_to->check = checksum((unsigned short*)pseudogram, sizeof(struct pseudo_header) + sizeof(struct tcphdr) + OPT_SIZE);
 
 		// printf("\nSending SYN packet to %s:%d\n\n", inet_ntoa(*(struct in_addr *)&((struct sockaddr_in *)res->ai_addr)->sin_addr), ntohs(tcp_to->dest));
-		if (sendto(g_data.sock, datagram, sizeof(struct tcphdr) + OPT_SIZE, 0, g_data.res->ai_addr, g_data.res->ai_addrlen) < 0)
+		if (sendto(g_data.sock, datagram, sizeof(struct tcphdr) + OPT_SIZE, 0, g_data.res.ai_addr, g_data.res.ai_addrlen) < 0)
 			error(1, "sendto: %s\n", strerror(errno));
 
 		check_packet(answer, save_port, port);
 	}
 	result(answer);
-	freeaddrinfo(g_data.res);
 }
 
 int main(int ac, char **av)
@@ -155,16 +154,7 @@ int main(int ac, char **av)
 		error(1, "usage: %s <host>", av[0]);
 
 	g_data.res = get_addr(av[1]);
-	g_data.host = get_ifaddr();
-
-	// char ip[INET6_ADDRSTRLEN];
-	// for (struct addrinfo *p = res; p != NULL; p = p->ai_next) {
-	// 	if (p->ai_family == AF_INET6)
-    //     	inet_ntop(p->ai_family, &((struct sockaddr_in6 *)p->ai_addr)->sin6_addr, ip, sizeof(ip));
-	// 	else
-	// 		inet_ntop(p->ai_family, &((struct sockaddr_in *)p->ai_addr)->sin_addr, ip, sizeof(ip));
-    //     printf("%s with IPV%d: %s\n", av[1], p->ai_family == AF_INET ? 4 : 6, ip);
-    // }
+	g_data.own_addr = get_own_addr(AF_INET);
 
 	create_socket();
 	send_packet();

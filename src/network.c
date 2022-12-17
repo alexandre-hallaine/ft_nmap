@@ -6,7 +6,7 @@
 #include "functions.h"
 #include "nmap.h"
 
-struct addrinfo *get_addr(char *host)
+struct addrinfo get_addr(char *host)
 {
 	struct addrinfo hints = {0}, *res = NULL;
 
@@ -17,37 +17,41 @@ struct addrinfo *get_addr(char *host)
 
 	if (getaddrinfo(host, NULL, &hints, &res) != 0)
 		error(1, "getaddrinfo: %s\n", gai_strerror(errno));
-	return res;
+
+	struct addrinfo ret = {0};
+	memcpy(&ret, res, sizeof(struct addrinfo));
+	freeaddrinfo(res);
+	return ret;
 }
 
-struct sockaddr_in *get_ifaddr()
+uint32_t get_own_addr(int family)
 {
 	struct ifaddrs *addrs = NULL, *tmp = NULL;
 	if (getifaddrs(&addrs) == -1)
 		error(1, "getifaddrs: %s\n", strerror(errno));
 	for (tmp = addrs; tmp != NULL; tmp = tmp->ifa_next)
 	{
-		if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET && ft_strcmp(tmp->ifa_name, "eth0") == 0)
+		if (tmp->ifa_addr && tmp->ifa_addr->sa_family == family && ft_strcmp(tmp->ifa_name, "eth0") == 0)
 		{
 			struct sockaddr_in *pAddr = (struct sockaddr_in *)tmp->ifa_addr;
 			freeifaddrs(addrs);
-			return pAddr;
+			return pAddr->sin_addr.s_addr;
 		}
 	}
 	freeifaddrs(addrs);
-	error(1, "get_ifaddr: Interface not found\n");
-	return NULL;
+	error(1, "get_own_ip: Interface not found\n");
+	return 0;
 }
 
 void create_socket()
 {
 	// create socket
 	// printf("Creating socket with family %d, type %d, protocol %d\n", res->ai_family, res->ai_socktype, res->ai_protocol);
-	if ((g_data.sock = socket(g_data.res->ai_family, SOCK_RAW, g_data.res->ai_protocol)) == -1)
+	if ((g_data.sock = socket(g_data.res.ai_family, SOCK_RAW, g_data.res.ai_protocol)) == -1)
 		error(1, "socket: %s\n", strerror(errno));
 
 	// socket options
-	struct timeval timeout = {(long)0, 500000};
+	struct timeval timeout = {(long)0, 100000};
 	if (setsockopt(g_data.sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
 		error(1, "setsockopt: %s\n", strerror(errno));
 }

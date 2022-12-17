@@ -16,21 +16,24 @@ struct pseudo_header
 enum state
 {
 	FILTERED = 0,
-	OPEN,
-	CLOSED,
-	UNEXPECTED,
-	OPEN_FILTERED,
-	CLOSED_FILTERED,
-	OPEN_OR_FILTERED,
-	CLOSED_OR_FILTERED,
 	UNFILTERED,
+	UNEXPECTED,
+
+	OPEN,
+	OPEN_FILTERED,
+	OPEN_OR_FILTERED,
+
+	CLOSED,
+	CLOSED_FILTERED,
+	CLOSED_OR_FILTERED,
 };
 
 typedef struct
 {
+	struct addrinfo res;
+	uint32_t own_addr;
+
 	int sock;
-	struct addrinfo *res;
-	struct sockaddr_in *host;
 	int closed;
 	int filtered;
 } t_data;
