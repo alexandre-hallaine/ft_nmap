@@ -34,6 +34,8 @@ char *get_type(int type)
 			return "unfiltered";
 		case UNEXPECTED:
 			return "unexpected";
+		case OPEN_FILTERED:
+			return "open|filtered";
 		default:
 			return "unknown";
 	}
@@ -41,16 +43,19 @@ char *get_type(int type)
 
 void result()
 {
-	unsigned short amount[sizeof(t_type) + 1] = {0};
+	unsigned short amount[TYPE_SIZE] = {0};
 	for (unsigned short index = g_data.options.start_port; index <= g_data.options.end_port; index++)
 		if (g_data.result[index] != UNSCANNED)
 			amount[g_data.result[index]]++;
 	
 	t_type default_type = 0;
-	for (t_type type = 0; type < sizeof(t_type) + 1; type++)
+	for (t_type type = 0; type < TYPE_SIZE; type++)
 		if (amount[type] > amount[default_type])
 			default_type = type;
 	printf("Not shown: %d ports on state %s\n", amount[default_type], get_type(default_type));
+
+	if (amount[default_type] == g_data.options.end_port - g_data.options.start_port + 1)
+		return;
 
 	printf("PORT\tSTATE\n");
 	for (unsigned short index = g_data.options.start_port; index <= g_data.options.end_port; index++)
@@ -72,18 +77,23 @@ int main(int ac, char **av)
 	g_data.options.end_port = 80;
 
 	create_socket();
-	create_packet_syn();
+	// create_packet_syn();
 	// create_packet_ack();
+	// create_packet_fin();
+	//create_packet_null();
+	create_packet_xmas();
 
 	for (unsigned short port = g_data.options.start_port; port <= g_data.options.end_port; port++)
 	{
 		printf("Scanning port %d\r", port);
 		fflush(stdout);
 
-		send_packet_syn(port);
+		// send_packet_syn(port);
 		// send_packet_ack(port);
-		receive_packet_syn(port);
+		send_packet_others(port);
+		receive_packet_others(port);
 		// receive_packet_ack(port);
+		// receive_packet_syn(port);
 	}
 	printf("Port scanning finished\n");
 	

@@ -5,6 +5,7 @@
 #include <limits.h>
 
 #define OPT_SIZE 4
+#define TYPE_SIZE 7
 
 typedef enum
 {
@@ -14,6 +15,7 @@ typedef enum
 	OPEN,
 	CLOSED,
 	UNFILTERED,
+	OPEN_FILTERED,
 } t_type;
 
 typedef struct
