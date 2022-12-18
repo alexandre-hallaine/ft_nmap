@@ -8,8 +8,8 @@
 
 enum state
 {
-	FILTERED = 0,
-	UNEXPECTED,
+	UNEXPECTED = 0,
+	FILTERED,
 
 	OPEN,
 	CLOSED,
@@ -36,6 +36,7 @@ typedef struct
 	uint32_t source_ip;
 	struct addrinfo destination;
 
+	struct data packet;
 	char result[USHRT_MAX];
 } t_data;
 
