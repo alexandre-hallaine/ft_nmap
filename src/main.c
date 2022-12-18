@@ -39,9 +39,7 @@ char *get_type(int type)
 
 void result()
 {
-	size_t closed = 0;
-	size_t filtered = 0;
-	size_t open = 0;
+	size_t closed = 0, filtered = 0, open = 0;
 
 	for (unsigned int index = 0; index < SHRT_MAX; index++)
 	{
@@ -62,8 +60,6 @@ void result()
 		default_type = FILTERED;
 	else
 		default_type = UNEXPECTED;
-	
-	printf("Default type: %s\n", get_type(default_type));
 
 	for (unsigned int index = 0; index < USHRT_MAX; index++)
 	{
@@ -73,6 +69,7 @@ void result()
 			continue;
 		printf("Port %d: %s\n", index, get_type(g_data.result[index]));
 	}
+	printf("%ld ports are %s\n", closed, get_type(default_type));
 }
 
 int main(int ac, char **av)
