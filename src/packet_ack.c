@@ -53,9 +53,7 @@ void receive_packet_ack(unsigned short port)
 			continue;
 
 		if (packet->rst)
-			g_data.result[g_data.index] = CLOSED;
-		else if (packet->ack)
-			g_data.result[g_data.index] = OPEN;
+			g_data.result[g_data.index] = UNFILTERED;
 		else
 			g_data.result[g_data.index] = UNEXPECTED;
 		break;
