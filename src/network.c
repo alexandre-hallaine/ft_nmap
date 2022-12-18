@@ -57,7 +57,7 @@ void create_socket()
 	if ((g_data.socket = socket(g_data.destination.ai_family, SOCK_RAW, g_data.destination.ai_protocol)) == -1)
 		error(1, "socket: %s\n", strerror(errno));
 
-	struct timeval timeout = {(long)0, 100000};
+	struct timeval timeout = {(long)0, 200000};
 	if (setsockopt(g_data.socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
 		error(1, "setsockopt: %s\n", strerror(errno));
 }
