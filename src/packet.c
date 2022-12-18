@@ -40,7 +40,7 @@ void receive_packet(unsigned short port)
 		if ((recvfrom(g_data.socket, packet_buffer, packet_size, 0, NULL, NULL)) < 0)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				g_data.result[destination_port] = FILTERED;
+				g_data.result[g_data.index] = FILTERED;
 			else
 				error(1, "recvfrom: %s\n", strerror(errno));
 			break;

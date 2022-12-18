@@ -39,37 +39,27 @@ char *get_type(int type)
 
 void result()
 {
-	size_t closed = 0, filtered = 0, open = 0;
+	int count[5] = {0};
 
-	for (unsigned int index = 0; index < 1024; index++)
-	{
-		if (g_data.result[index] == CLOSED)
-			closed++;
-		else if (g_data.result[index] == FILTERED)
-			filtered++;
-		else if (g_data.result[index] == OPEN)
-			open++;
-	}
+	for (unsigned int index = 0; index < g_data.index; index++)
+		count[(int)g_data.result[index]]++;
 
 	int default_type;
-	if (open > closed && open > filtered)
+	if (count[OPEN] > count[CLOSED] && count[OPEN] > count[FILTERED])
 		default_type = OPEN;
-	else if (closed > open && closed > filtered)
+	else if (count[CLOSED] > count[OPEN] && count[CLOSED] > count[FILTERED])
 		default_type = CLOSED;
-	else if (filtered > open && filtered > closed)
+	else if (count[FILTERED] > count[OPEN] && count[FILTERED] > count[CLOSED])
 		default_type = FILTERED;
 	else
 		default_type = UNEXPECTED;
 
-	for (unsigned int index = 0; index < 1024; index++)
+	printf("Not shown: %d ports on state %s\n", count[default_type] , get_type(default_type));
+	for (unsigned int index = 0; index < g_data.index; index++)
 	{
-		if (g_data.result[index] == default_type)
-			continue;
-		if (g_data.result[index] == UNSCANNED)
-			continue;
-		printf("Port %d: %s\n", index + (int)g_data.options.start_port, get_type(g_data.result[index]));
+		if (g_data.result[index] != default_type)
+			printf("Port %d: %s\n", index + (int)g_data.options.start_port, get_type(g_data.result[index]));
 	}
-	printf("%ld ports are %s\n", closed, get_type(default_type));
 }
 
 int main(int ac, char **av)
@@ -82,8 +72,8 @@ int main(int ac, char **av)
 
 	g_data.source_ip = get_interface(AF_INET);
 	g_data.destination = get_info(av[1]);
-	g_data.options.start_port = 400;
-	g_data.options.end_port = 1000;
+	g_data.options.start_port = 22;
+	g_data.options.end_port = 80;
 
 	create_socket();
 	create_packet();
