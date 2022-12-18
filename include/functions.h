@@ -5,7 +5,7 @@
 
 // address.c
 uint32_t get_interface();
-struct addrinfo get_info(char *host);
+t_addrinfo get_info(char *host);
 
 // checksum.c
 unsigned short tcp_checksum_ack(t_packet packet);

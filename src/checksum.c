@@ -20,7 +20,7 @@ unsigned short tcp_checksum_syn(t_packet packet)
 {
 	t_ipv4_pseudo_header pseudo_header = {
 		.source_address = g_data.source_ip,
-		.destination_address = ((struct sockaddr_in *)g_data.destination.ai_addr)->sin_addr.s_addr,
+		.destination_address = ((struct sockaddr_in *)&g_data.destination.ai_addr)->sin_addr.s_addr,
 		.protocol = IPPROTO_TCP,
 		.tcp_length = htons(sizeof(t_packet))};
 
@@ -37,7 +37,7 @@ unsigned short tcp_checksum_ack(t_packet packet)
 {
 	t_ipv4_pseudo_header pseudo_header = {
 		.source_address = g_data.source_ip,
-		.destination_address = ((struct sockaddr_in *)g_data.destination.ai_addr)->sin_addr.s_addr,
+		.destination_address = ((struct sockaddr_in *)&g_data.destination.ai_addr)->sin_addr.s_addr,
 		.protocol = IPPROTO_TCP,
 		.tcp_length = htons(sizeof(struct tcphdr))};
 

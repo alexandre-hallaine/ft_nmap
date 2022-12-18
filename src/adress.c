@@ -35,7 +35,7 @@ uint32_t get_interface(int family)
 	return ret;
 }
 
-struct addrinfo get_info(char *host)
+t_addrinfo get_info(char *host)
 {
 	struct addrinfo hints = {0}, *res = NULL;
 
@@ -46,8 +46,12 @@ struct addrinfo get_info(char *host)
 	if (getaddrinfo(host, NULL, &hints, &res) != 0)
 		error(1, "getaddrinfo: %s\n", gai_strerror(errno));
 
-	struct addrinfo ret = {0};
-	memcpy(&ret, res, sizeof(struct addrinfo));
+	t_addrinfo ret = {
+		.ai_family = res->ai_family,
+		.ai_protocol = res->ai_protocol,
+		.ai_addrlen = res->ai_addrlen,
+	};
+	memcpy(&ret.ai_addr, res->ai_addr, res->ai_addrlen);
 	freeaddrinfo(res);
 	return ret;
 }

@@ -25,7 +25,7 @@ void send_packet_syn(unsigned short port)
 	g_data.packet.tcp.dest = htons(port);
 	g_data.packet.tcp.check = tcp_checksum_syn(g_data.packet);
 
-	if (sendto(g_data.socket, &g_data.packet, sizeof(struct tcphdr) + OPT_SIZE, 0, g_data.destination.ai_addr, g_data.destination.ai_addrlen) < 0)
+	if (sendto(g_data.socket, &g_data.packet, sizeof(struct tcphdr) + OPT_SIZE, 0, &g_data.destination.ai_addr, g_data.destination.ai_addrlen) < 0)
 		error(1, "sendto: %s\n", strerror(errno));
 }
 

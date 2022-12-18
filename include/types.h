@@ -37,11 +37,18 @@ typedef struct
 	unsigned short end_port;
 } t_options;
 
+typedef struct {
+  int ai_family;
+  int ai_protocol;
+  socklen_t ai_addrlen;
+  struct sockaddr ai_addr;
+} t_addrinfo;
+
 typedef struct
 {
 	int socket;
 	uint32_t source_ip;
-	struct addrinfo destination;
+	t_addrinfo destination;
 
 	t_packet packet;
 	t_type result[USHRT_MAX];
