@@ -11,6 +11,7 @@ void create_packet_syn()
 	g_data.packet.tcp.source = htons(4242);
 	g_data.packet.tcp.doff = 5 + OPT_SIZE / 4;
 	g_data.packet.tcp.syn = 1;
+	g_data.packet.tcp.window = htons(1024);
 
 	// maybe can be removed
 	g_data.packet.options[0] = 2;
@@ -40,7 +41,7 @@ void receive_packet_syn(unsigned short port)
 		if ((recvfrom(g_data.socket, packet_buffer, packet_size, 0, NULL, NULL)) < 0)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				g_data.result[g_data.index] = FILTERED;
+				g_data.result[destination_port] = FILTERED;
 			else
 				error(1, "recvfrom: %s\n", strerror(errno));
 			break;
@@ -57,11 +58,11 @@ void receive_packet_syn(unsigned short port)
 			continue;
 
 		if (packet->tcp.rst)
-			g_data.result[g_data.index] = CLOSED;
+			g_data.result[destination_port] = CLOSED;
 		else if (packet->tcp.ack)
-			g_data.result[g_data.index] = OPEN;
+			g_data.result[destination_port] = OPEN;
 		else
-			g_data.result[g_data.index] = UNEXPECTED;
+			g_data.result[destination_port] = UNEXPECTED;
 		break;
 	}
 }

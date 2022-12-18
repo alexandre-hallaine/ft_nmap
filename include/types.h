@@ -6,7 +6,7 @@
 
 #define OPT_SIZE 4
 
-enum state
+typedef enum
 {
 	UNSCANNED = 0,
 	UNEXPECTED,
@@ -14,7 +14,7 @@ enum state
 	OPEN,
 	CLOSED,
 	UNFILTERED,
-};
+} t_type;
 
 typedef struct
 {
@@ -33,8 +33,8 @@ typedef struct
 
 typedef struct
 {
-	size_t start_port;
-	size_t end_port;
+	unsigned short start_port;
+	unsigned short end_port;
 } t_options;
 
 typedef struct
@@ -44,8 +44,7 @@ typedef struct
 	struct addrinfo destination;
 
 	t_packet packet;
-	char result[1024];
-	size_t index;
+	t_type result[USHRT_MAX];
 	t_options options;
 } t_data;
 

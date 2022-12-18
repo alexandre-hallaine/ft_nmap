@@ -1,4 +1,4 @@
-NAME	:= nmap
+NAME	:= ft_nmap
 CFLAGS	:= -Wall -Wextra -Ofast
 # CFLAGS	+= -Werror
 

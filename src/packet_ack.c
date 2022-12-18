@@ -36,7 +36,7 @@ void receive_packet_ack(unsigned short port)
 		if ((recvfrom(g_data.socket, packet_buffer, packet_size, 0, NULL, NULL)) < 0)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				g_data.result[g_data.index] = FILTERED;
+				g_data.result[destination_port] = FILTERED;
 			else
 				error(1, "recvfrom: %s\n", strerror(errno));
 			break;
@@ -53,9 +53,9 @@ void receive_packet_ack(unsigned short port)
 			continue;
 
 		if (packet->rst)
-			g_data.result[g_data.index] = UNFILTERED;
+			g_data.result[destination_port] = UNFILTERED;
 		else
-			g_data.result[g_data.index] = UNEXPECTED;
+			g_data.result[destination_port] = UNEXPECTED;
 		break;
 	}
 }

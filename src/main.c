@@ -41,29 +41,21 @@ char *get_type(int type)
 
 void result()
 {
-	int count[6] = {0};
+	unsigned short amount[sizeof(t_type) + 1] = {0};
+	for (unsigned short index = g_data.options.start_port; index <= g_data.options.end_port; index++)
+		if (g_data.result[index] != UNSCANNED)
+			amount[g_data.result[index]]++;
+	
+	t_type default_type = 0;
+	for (t_type type = 0; type < sizeof(t_type) + 1; type++)
+		if (amount[type] > amount[default_type])
+			default_type = type;
+	printf("Not shown: %d ports on state %s\n", amount[default_type], get_type(default_type));
 
-	for (unsigned int index = 0; index < g_data.index; index++)
-		count[(int)g_data.result[index]]++;
-
-	int default_type;
-	if (count[OPEN] > count[CLOSED] && count[OPEN] > count[FILTERED] && count[OPEN] > count[UNFILTERED])
-		default_type = OPEN;
-	else if (count[CLOSED] > count[OPEN] && count[CLOSED] > count[FILTERED] && count[CLOSED] > count[UNFILTERED])
-		default_type = CLOSED;
-	else if (count[FILTERED] > count[OPEN] && count[FILTERED] > count[CLOSED] && count[FILTERED] > count[UNFILTERED])
-		default_type = FILTERED;
-	else if (count[UNFILTERED] > count[OPEN] && count[UNFILTERED] > count[CLOSED] && count[UNFILTERED] > count[FILTERED])
-		default_type = UNFILTERED;
-	else
-		default_type = UNEXPECTED;
-
-	printf("Not shown: %d ports on state %s\n", count[default_type] , get_type(default_type));
-	for (unsigned int index = 0; index < g_data.index; index++)
-	{
-		if (g_data.result[index] != default_type)
-			printf("Port %d: %s\n", index + (int)g_data.options.start_port, get_type(g_data.result[index]));
-	}
+	printf("PORT\tSTATE\n");
+	for (unsigned short index = g_data.options.start_port; index <= g_data.options.end_port; index++)
+		if (g_data.result[index] != UNSCANNED && g_data.result[index] != default_type)
+			printf("%d\t%s\n", index, get_type(g_data.result[index]));
 }
 
 int main(int ac, char **av)
@@ -80,18 +72,18 @@ int main(int ac, char **av)
 	g_data.options.end_port = 80;
 
 	create_socket();
-	//create_packet_syn();
-	create_packet_ack();
+	create_packet_syn();
+	// create_packet_ack();
 
-	for (unsigned short port = g_data.options.start_port; port <= g_data.options.end_port; port++, g_data.index++)
+	for (unsigned short port = g_data.options.start_port; port <= g_data.options.end_port; port++)
 	{
 		printf("Scanning port %d\r", port);
 		fflush(stdout);
 
-		// send_packet_syn(port);
-		send_packet_ack(port);
-		// receive_packet_syn(port);
-		receive_packet_ack(port);
+		send_packet_syn(port);
+		// send_packet_ack(port);
+		receive_packet_syn(port);
+		// receive_packet_ack(port);
 	}
 	printf("Port scanning finished\n");
 	

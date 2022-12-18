@@ -26,9 +26,9 @@ unsigned short tcp_checksum_syn(t_packet packet)
 
 	packet.tcp.check = 0;
 
-	char buffer[sizeof(t_ipv4_pseudo_header) + sizeof(packet)];
+	char buffer[sizeof(t_ipv4_pseudo_header) + sizeof(t_packet)];
 	memcpy(buffer, &pseudo_header, sizeof(t_ipv4_pseudo_header));
-	memcpy(buffer + sizeof(t_ipv4_pseudo_header), &packet, sizeof(packet));
+	memcpy(buffer + sizeof(t_ipv4_pseudo_header), &packet, sizeof(t_packet));
 
 	return checksum((unsigned short *)buffer, sizeof(buffer));
 }
