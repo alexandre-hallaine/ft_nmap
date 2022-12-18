@@ -30,6 +30,8 @@ char *get_type(int type)
 			return "closed";
 		case FILTERED:
 			return "filtered";
+		case UNFILTERED:
+			return "unfiltered";
 		case UNEXPECTED:
 			return "unexpected";
 		default:
@@ -39,18 +41,20 @@ char *get_type(int type)
 
 void result()
 {
-	int count[5] = {0};
+	int count[6] = {0};
 
 	for (unsigned int index = 0; index < g_data.index; index++)
 		count[(int)g_data.result[index]]++;
 
 	int default_type;
-	if (count[OPEN] > count[CLOSED] && count[OPEN] > count[FILTERED])
+	if (count[OPEN] > count[CLOSED] && count[OPEN] > count[FILTERED] && count[OPEN] > count[UNFILTERED])
 		default_type = OPEN;
-	else if (count[CLOSED] > count[OPEN] && count[CLOSED] > count[FILTERED])
+	else if (count[CLOSED] > count[OPEN] && count[CLOSED] > count[FILTERED] && count[CLOSED] > count[UNFILTERED])
 		default_type = CLOSED;
-	else if (count[FILTERED] > count[OPEN] && count[FILTERED] > count[CLOSED])
+	else if (count[FILTERED] > count[OPEN] && count[FILTERED] > count[CLOSED] && count[FILTERED] > count[UNFILTERED])
 		default_type = FILTERED;
+	else if (count[UNFILTERED] > count[OPEN] && count[UNFILTERED] > count[CLOSED] && count[UNFILTERED] > count[FILTERED])
+		default_type = UNFILTERED;
 	else
 		default_type = UNEXPECTED;
 
@@ -76,15 +80,18 @@ int main(int ac, char **av)
 	g_data.options.end_port = 80;
 
 	create_socket();
-	create_packet();
+	//create_packet_syn();
+	create_packet_ack();
 
 	for (unsigned short port = g_data.options.start_port; port <= g_data.options.end_port; port++, g_data.index++)
 	{
 		printf("Scanning port %d\r", port);
 		fflush(stdout);
 
-		send_packet(port);
-		receive_packet(port);
+		// send_packet_syn(port);
+		send_packet_ack(port);
+		// receive_packet_syn(port);
+		receive_packet_ack(port);
 	}
 	printf("Port scanning finished\n");
 	

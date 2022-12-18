@@ -5,35 +5,31 @@
 
 #include "functions.h"
 
-void create_packet()
+void create_packet_ack()
 {
 	// g_data.packet.tcp.source = htons(rand() % USHRT_MAX);
 	g_data.packet.tcp.source = htons(4242);
-	g_data.packet.tcp.doff = 5 + OPT_SIZE / 4;
-	g_data.packet.tcp.syn = 1;
-
-	// maybe can be removed
-	g_data.packet.options[0] = 2;
-	g_data.packet.options[1] = 4;
-	int mss = htons(1460);
-	memcpy(g_data.packet.options + 2, &mss, 2);
+	g_data.packet.tcp.doff = 5;
+	g_data.packet.tcp.ack = 1;
+	g_data.packet.tcp.ack_seq = htonl(1);
+	g_data.packet.tcp.window = htons(1024);
 }
 
-void send_packet(unsigned short port)
+void send_packet_ack(unsigned short port)
 {
 	g_data.packet.tcp.dest = htons(port);
-	g_data.packet.tcp.check = tcp_checksum(g_data.packet);
+	g_data.packet.tcp.check = tcp_checksum_ack(g_data.packet);
 
-	if (sendto(g_data.socket, &g_data.packet, sizeof(struct tcphdr) + OPT_SIZE, 0, g_data.destination.ai_addr, g_data.destination.ai_addrlen) < 0)
+	if (sendto(g_data.socket, &g_data.packet, sizeof(struct tcphdr), 0, g_data.destination.ai_addr, g_data.destination.ai_addrlen) < 0)
 		error(1, "sendto: %s\n", strerror(errno));
 }
 
-void receive_packet(unsigned short port)
+void receive_packet_ack(unsigned short port)
 {
 	unsigned short source_port = ntohs(g_data.packet.tcp.source);
 	unsigned short destination_port = port;
 
-	size_t packet_size = sizeof(struct iphdr) + sizeof(struct tcphdr) + OPT_SIZE;
+	size_t packet_size = sizeof(struct iphdr) + sizeof(struct tcphdr);
 	char packet_buffer[packet_size];
 	while (1)
 	{
@@ -50,15 +46,15 @@ void receive_packet(unsigned short port)
 		if (ip_header->protocol != IPPROTO_TCP)
 			continue;
 
-		t_packet *packet = (t_packet *)(packet_buffer + sizeof(struct iphdr));
-		if (ntohs(packet->tcp.source) != destination_port)
+		struct tcphdr *packet = (struct tcphdr *)(packet_buffer + sizeof(struct iphdr));
+		if (ntohs(packet->source) != destination_port)
 			continue;
-		if (ntohs(packet->tcp.dest) != source_port)
+		if (ntohs(packet->dest) != source_port)
 			continue;
 
-		if (packet->tcp.rst)
+		if (packet->rst)
 			g_data.result[g_data.index] = CLOSED;
-		else if (packet->tcp.ack)
+		else if (packet->ack)
 			g_data.result[g_data.index] = OPEN;
 		else
 			g_data.result[g_data.index] = UNEXPECTED;

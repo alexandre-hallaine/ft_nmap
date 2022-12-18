@@ -11,9 +11,9 @@ enum state
 	UNSCANNED = 0,
 	UNEXPECTED,
 	FILTERED,
-
 	OPEN,
 	CLOSED,
+	UNFILTERED,
 };
 
 typedef struct
@@ -48,6 +48,7 @@ typedef struct
 	size_t index;
 	t_options options;
 } t_data;
+
 extern t_data g_data;
 
 #endif

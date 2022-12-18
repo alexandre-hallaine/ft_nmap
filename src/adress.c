@@ -27,7 +27,7 @@ uint32_t get_interface(int family)
 		{
 			struct sockaddr_in *addr = (struct sockaddr_in *)tmp->ifa_addr;
 			ret = addr->sin_addr.s_addr;
-			printf("Interface: %s, address: %s\n", tmp->ifa_name, inet_ntoa(addr->sin_addr));
+			// printf("Interface: %s, address: %s\n", tmp->ifa_name, inet_ntoa(addr->sin_addr));
 			break;
 		}
 	}
