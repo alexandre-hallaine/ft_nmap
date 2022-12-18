@@ -41,7 +41,7 @@ void result()
 {
 	size_t closed = 0, filtered = 0, open = 0;
 
-	for (unsigned int index = 0; index < SHRT_MAX; index++)
+	for (unsigned int index = 0; index < 1024; index++)
 	{
 		if (g_data.result[index] == CLOSED)
 			closed++;
@@ -61,13 +61,13 @@ void result()
 	else
 		default_type = UNEXPECTED;
 
-	for (unsigned int index = 0; index < USHRT_MAX; index++)
+	for (unsigned int index = 0; index < 1024; index++)
 	{
 		if (g_data.result[index] == default_type)
 			continue;
 		if (g_data.result[index] == UNSCANNED)
 			continue;
-		printf("Port %d: %s\n", index, get_type(g_data.result[index]));
+		printf("Port %d: %s\n", index + (int)g_data.options.start_port, get_type(g_data.result[index]));
 	}
 	printf("%ld ports are %s\n", closed, get_type(default_type));
 }
@@ -82,11 +82,13 @@ int main(int ac, char **av)
 
 	g_data.source_ip = get_interface(AF_INET);
 	g_data.destination = get_info(av[1]);
+	g_data.options.start_port = 400;
+	g_data.options.end_port = 1000;
 
 	create_socket();
 	create_packet();
 
-	for (unsigned short port = 22; port < 80; port++)
+	for (unsigned short port = g_data.options.start_port; port <= g_data.options.end_port; port++, g_data.index++)
 	{
 		printf("Scanning port %d\r", port);
 		fflush(stdout);

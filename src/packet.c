@@ -57,11 +57,11 @@ void receive_packet(unsigned short port)
 			continue;
 
 		if (packet->tcp.rst)
-			g_data.result[destination_port] = CLOSED;
+			g_data.result[g_data.index] = CLOSED;
 		else if (packet->tcp.ack)
-			g_data.result[destination_port] = OPEN;
+			g_data.result[g_data.index] = OPEN;
 		else
-			g_data.result[destination_port] = UNEXPECTED;
+			g_data.result[g_data.index] = UNEXPECTED;
 		break;
 	}
 }

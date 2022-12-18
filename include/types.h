@@ -33,12 +33,20 @@ typedef struct
 
 typedef struct
 {
+	size_t start_port;
+	size_t end_port;
+} t_options;
+
+typedef struct
+{
 	int socket;
 	uint32_t source_ip;
 	struct addrinfo destination;
 
 	t_packet packet;
-	char result[USHRT_MAX];
+	char result[1024];
+	size_t index;
+	t_options options;
 } t_data;
 extern t_data g_data;
 
