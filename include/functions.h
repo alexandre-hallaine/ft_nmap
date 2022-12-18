@@ -8,7 +8,7 @@ uint32_t get_interface();
 struct addrinfo get_info(char *host);
 
 // checksum.c
-unsigned short tcp_checksum(struct data data);
+unsigned short tcp_checksum(t_packet packet);
 
 // packet.c
 void create_packet();

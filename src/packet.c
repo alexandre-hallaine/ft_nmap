@@ -50,7 +50,7 @@ void receive_packet(unsigned short port)
 		if (ip_header->protocol != IPPROTO_TCP)
 			continue;
 
-		struct data *packet = (struct data *)(packet_buffer + sizeof(struct iphdr));
+		t_packet *packet = (t_packet *)(packet_buffer + sizeof(struct iphdr));
 		if (ntohs(packet->tcp.source) != destination_port)
 			continue;
 		if (ntohs(packet->tcp.dest) != source_port)
