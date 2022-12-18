@@ -8,7 +8,8 @@
 
 enum state
 {
-	UNEXPECTED = 0,
+	UNSCANNED = 0,
+	UNEXPECTED,
 	FILTERED,
 
 	OPEN,

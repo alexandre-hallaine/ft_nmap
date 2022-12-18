@@ -20,6 +20,61 @@ void create_socket()
 		error(1, "setsockopt: %s\n", strerror(errno));
 }
 
+char *get_type(int type)
+{
+	switch (type)
+	{
+		case OPEN:
+			return "open";
+		case CLOSED:
+			return "closed";
+		case FILTERED:
+			return "filtered";
+		case UNEXPECTED:
+			return "unexpected";
+		default:
+			return "unknown";
+	}
+}
+
+void result()
+{
+	size_t closed = 0;
+	size_t filtered = 0;
+	size_t open = 0;
+
+	for (unsigned int index = 0; index < SHRT_MAX; index++)
+	{
+		if (g_data.result[index] == CLOSED)
+			closed++;
+		else if (g_data.result[index] == FILTERED)
+			filtered++;
+		else if (g_data.result[index] == OPEN)
+			open++;
+	}
+
+	int default_type;
+	if (open > closed && open > filtered)
+		default_type = OPEN;
+	else if (closed > open && closed > filtered)
+		default_type = CLOSED;
+	else if (filtered > open && filtered > closed)
+		default_type = FILTERED;
+	else
+		default_type = UNEXPECTED;
+	
+	printf("Default type: %s\n", get_type(default_type));
+
+	for (unsigned int index = 0; index < USHRT_MAX; index++)
+	{
+		if (g_data.result[index] == default_type)
+			continue;
+		if (g_data.result[index] == UNSCANNED)
+			continue;
+		printf("Port %d: %s\n", index, get_type(g_data.result[index]));
+	}
+}
+
 int main(int ac, char **av)
 {
 	if (getuid() != 0)
@@ -34,7 +89,7 @@ int main(int ac, char **av)
 	create_socket();
 	create_packet();
 
-	for (unsigned short port = 22; port <= 80; port++)
+	for (unsigned short port = 22; port < 80; port++)
 	{
 		printf("Scanning port %d\r", port);
 		fflush(stdout);
@@ -43,9 +98,7 @@ int main(int ac, char **av)
 		receive_packet(port);
 	}
 	printf("Port scanning finished\n");
-
-	for (unsigned short port = 1; port <= 1024; port++)
-		if (g_data.result[port] == OPEN)
-			printf("Port %d is open\n", port);
+	
+	result();
 	return 0;
 }

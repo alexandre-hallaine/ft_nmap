@@ -60,6 +60,8 @@ void receive_packet(unsigned short port)
 			g_data.result[destination_port] = CLOSED;
 		else if (packet->tcp.ack)
 			g_data.result[destination_port] = OPEN;
+		else
+			g_data.result[destination_port] = UNEXPECTED;
 		break;
 	}
 }
