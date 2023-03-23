@@ -1,6 +1,7 @@
 NAME	:= ft_nmap
-CFLAGS	:= -Wall -Wextra -Ofast
+CFLAGS	:= -Wall -Wextra
 # CFLAGS	+= -Werror
+# CFLAGS	:= -Ofast
 
 HEADERS	:= -I ./include
 LIBS	:= -lpcap -lpthread
@@ -13,16 +14,16 @@ all: $(NAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -o $@ -c $< $(HEADERS) && echo "Compiling: $(notdir $<)"
+	$(CC) $(CFLAGS) -o $@ -c $< $(HEADERS) && echo "Compiled: $(notdir $@)"
 
 $(NAME): $(OBJS)
-	$(CC) $(OBJS) $(LIBS) $(HEADERS) -o $(NAME)
+	$(CC) $(OBJS) $(LIBS) $(HEADERS) -o $(NAME) && echo "Linked: $(NAME)"
 
 clean:
-	rm -rf $(OBJDIR)
+	rm -rf $(OBJDIR) && echo "Removed: $(OBJDIR)"
 
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(NAME) && echo "Removed: $(NAME)"
 
 re: clean all
 
