@@ -7,26 +7,17 @@
 
 void create_packet_syn()
 {
-	// g_data.packet.tcp.source = htons(rand() % USHRT_MAX);
 	g_data.packet.tcp.source = htons(4242);
-	g_data.packet.tcp.doff = 5 + OPT_SIZE / 4;
-	g_data.packet.tcp.syn = 1;
 	g_data.packet.tcp.window = htons(1024);
+	g_data.packet.tcp.doff = 5;
+	g_data.packet.tcp.syn = 1;
 
 	// maybe can be removed
-	g_data.packet.options[0] = 2;
-	g_data.packet.options[1] = 4;
-	int mss = htons(1460);
-	memcpy(g_data.packet.options + 2, &mss, 2);
-}
-
-void send_packet_syn(unsigned short port)
-{
-	g_data.packet.tcp.dest = htons(port);
-	g_data.packet.tcp.check = tcp_checksum(g_data.packet, OPT_SIZE);
-
-	if (sendto(g_data.socket, &g_data.packet, sizeof(struct tcphdr) + OPT_SIZE, 0, &g_data.destination.ai_addr, g_data.destination.ai_addrlen) < 0)
-		error(1, "sendto: %s\n", strerror(errno));
+	// g_data.packet.tcp.doff = 5 + OPT_SIZE / 4;
+	// g_data.packet.options[0] = 2;
+	// g_data.packet.options[1] = 4;
+	// int mss = htons(1460);
+	// memcpy(g_data.packet.options + 2, &mss, 2);
 }
 
 void receive_packet_syn(unsigned short port)

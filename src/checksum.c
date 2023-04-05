@@ -16,7 +16,7 @@ unsigned short checksum(unsigned short *addr, size_t len)
 	return (~sum);
 }
 
-unsigned short tcp_checksum(t_packet packet, size_t value)
+unsigned short tcp_checksum(t_packet packet, unsigned short value)
 {
 	t_ipv4_pseudo_header pseudo_header = {
 		.source_address = g_data.source_ip.in.s_addr,

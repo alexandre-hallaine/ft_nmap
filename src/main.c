@@ -78,8 +78,8 @@ int main(int ac, char **av)
 	printf("--- nmap loaded ---\n\n");
 
 	create_socket();
-	create_packet_ack();
-	// create_packet_syn();
+	// create_packet_ack();
+	create_packet_syn();
 	// create_packet_fin();
 	//create_packet_null();
 	// create_packet_xmas();
