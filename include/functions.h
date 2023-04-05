@@ -4,7 +4,7 @@
 #include "types.h"
 
 // address.c
-uint32_t get_interface();
+t_addr get_interface(sa_family_t family);
 t_addrinfo get_info(char *host);
 
 // checksum.c

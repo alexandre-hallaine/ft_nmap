@@ -19,7 +19,7 @@ unsigned short checksum(unsigned short *addr, size_t len)
 unsigned short tcp_checksum_t_packet(t_packet packet)
 {
 	t_ipv4_pseudo_header pseudo_header = {
-		.source_address = g_data.source_ip,
+		.source_address = g_data.source_ip.in.s_addr,
 		.destination_address = ((struct sockaddr_in *)&g_data.destination.ai_addr)->sin_addr.s_addr,
 		.protocol = IPPROTO_TCP,
 		.tcp_length = htons(sizeof(t_packet))};
@@ -36,7 +36,7 @@ unsigned short tcp_checksum_t_packet(t_packet packet)
 unsigned short tcp_checksum_tcp(t_packet packet)
 {
 	t_ipv4_pseudo_header pseudo_header = {
-		.source_address = g_data.source_ip,
+		.source_address = g_data.source_ip.in.s_addr,
 		.destination_address = ((struct sockaddr_in *)&g_data.destination.ai_addr)->sin_addr.s_addr,
 		.protocol = IPPROTO_TCP,
 		.tcp_length = htons(sizeof(struct tcphdr))};

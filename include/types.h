@@ -4,6 +4,20 @@
 #include <netinet/tcp.h>
 #include <limits.h>
 
+typedef union
+{
+	struct in_addr in;
+	struct in6_addr in6;
+} t_addr;
+
+typedef struct
+{
+	int ai_family;
+	int ai_protocol;
+	socklen_t ai_addrlen;
+	struct sockaddr ai_addr;
+} t_addrinfo;
+
 #define OPT_SIZE 4
 #define TYPE_SIZE 7
 
@@ -39,17 +53,10 @@ typedef struct
 	unsigned short end_port;
 } t_options;
 
-typedef struct {
-  int ai_family;
-  int ai_protocol;
-  socklen_t ai_addrlen;
-  struct sockaddr ai_addr;
-} t_addrinfo;
-
 typedef struct
 {
 	int socket;
-	uint32_t source_ip;
+	t_addr source_ip;
 	t_addrinfo destination;
 
 	t_packet packet;
