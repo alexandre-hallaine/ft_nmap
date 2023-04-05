@@ -36,7 +36,7 @@ void create_packet_null()
 void send_packet_others(unsigned short port)
 {
 	g_data.packet.tcp.dest = htons(port);
-	g_data.packet.tcp.check = tcp_checksum_tcp(g_data.packet);
+	g_data.packet.tcp.check = tcp_checksum(g_data.packet, 0);
 
 	if (sendto(g_data.socket, &g_data.packet, sizeof(struct tcphdr), 0, &g_data.destination.ai_addr, g_data.destination.ai_addrlen) < 0)
 		error(1, "sendto: %s\n", strerror(errno));

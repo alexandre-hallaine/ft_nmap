@@ -7,21 +7,10 @@
 
 void create_packet_ack()
 {
-	// g_data.packet.tcp.source = htons(rand() % USHRT_MAX);
 	g_data.packet.tcp.source = htons(4242);
+	g_data.packet.tcp.window = htons(1024);
 	g_data.packet.tcp.doff = 5;
 	g_data.packet.tcp.ack = 1;
-	g_data.packet.tcp.ack_seq = htonl(1);
-	g_data.packet.tcp.window = htons(1024);
-}
-
-void send_packet_ack(unsigned short port)
-{
-	g_data.packet.tcp.dest = htons(port);
-	g_data.packet.tcp.check = tcp_checksum_tcp(g_data.packet);
-
-	if (sendto(g_data.socket, &g_data.packet, sizeof(struct tcphdr), 0, &g_data.destination.ai_addr, g_data.destination.ai_addrlen) < 0)
-		error(1, "sendto: %s\n", strerror(errno));
 }
 
 void receive_packet_ack(unsigned short port)

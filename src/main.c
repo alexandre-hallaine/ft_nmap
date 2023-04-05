@@ -69,29 +69,30 @@ int main(int ac, char **av)
 		error(1, "usage: You need to be root to run this program\n");
 	if (!av[1] || ac != 2)
 		error(1, "usage: %s <host>", av[0]);
-	srand(time(0));
 
+	printf("--- Loading nmap ---\n");
 	g_data.source_ip = get_interface(AF_INET);
 	g_data.destination = get_info(av[1]);
 	g_data.options.start_port = 22;
 	g_data.options.end_port = 80;
+	printf("--- nmap loaded ---\n\n");
 
 	create_socket();
+	create_packet_ack();
 	// create_packet_syn();
-	// create_packet_ack();
 	// create_packet_fin();
 	//create_packet_null();
-	create_packet_xmas();
+	// create_packet_xmas();
 
 	for (unsigned short port = g_data.options.start_port; port <= g_data.options.end_port; port++)
 	{
 		printf("Scanning port %d\r", port);
 		fflush(stdout);
 
+		send_packet_tcp(port);
 		// send_packet_syn(port);
-		// send_packet_ack(port);
-		send_packet_others(port);
-		receive_packet_others(port);
+		// send_packet_others(port);
+		// receive_packet_others(port);
 		// receive_packet_ack(port);
 		// receive_packet_syn(port);
 	}

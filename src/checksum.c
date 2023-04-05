@@ -16,36 +16,19 @@ unsigned short checksum(unsigned short *addr, size_t len)
 	return (~sum);
 }
 
-unsigned short tcp_checksum_t_packet(t_packet packet)
+unsigned short tcp_checksum(t_packet packet, size_t value)
 {
 	t_ipv4_pseudo_header pseudo_header = {
 		.source_address = g_data.source_ip.in.s_addr,
 		.destination_address = ((struct sockaddr_in *)&g_data.destination.ai_addr)->sin_addr.s_addr,
 		.protocol = IPPROTO_TCP,
-		.tcp_length = htons(sizeof(t_packet))};
+		.tcp_length = htons(sizeof(struct tcphdr) + value)};
 
 	packet.tcp.check = 0;
 
-	char buffer[sizeof(t_ipv4_pseudo_header) + sizeof(t_packet)];
+	char buffer[sizeof(t_ipv4_pseudo_header) + sizeof(struct tcphdr) + value];
 	memcpy(buffer, &pseudo_header, sizeof(t_ipv4_pseudo_header));
-	memcpy(buffer + sizeof(t_ipv4_pseudo_header), &packet, sizeof(t_packet));
-
-	return checksum((unsigned short *)buffer, sizeof(buffer));
-}
-
-unsigned short tcp_checksum_tcp(t_packet packet)
-{
-	t_ipv4_pseudo_header pseudo_header = {
-		.source_address = g_data.source_ip.in.s_addr,
-		.destination_address = ((struct sockaddr_in *)&g_data.destination.ai_addr)->sin_addr.s_addr,
-		.protocol = IPPROTO_TCP,
-		.tcp_length = htons(sizeof(struct tcphdr))};
-
-	packet.tcp.check = 0;
-
-	char buffer[sizeof(t_ipv4_pseudo_header) + sizeof(struct tcphdr)];
-	memcpy(buffer, &pseudo_header, sizeof(t_ipv4_pseudo_header));
-	memcpy(buffer + sizeof(t_ipv4_pseudo_header), &packet, sizeof(struct tcphdr));
+	memcpy(buffer + sizeof(t_ipv4_pseudo_header), &packet, sizeof(struct tcphdr) + value);
 
 	return checksum((unsigned short *)buffer, sizeof(buffer));
 }
