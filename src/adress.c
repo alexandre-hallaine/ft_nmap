@@ -1,3 +1,5 @@
+#include "functions.h"
+
 #include <string.h>
 #include <netdb.h>
 #include <errno.h>
@@ -6,8 +8,6 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <stdbool.h>
-
-#include "functions.h"
 
 t_addr get_interface(sa_family_t family)
 {

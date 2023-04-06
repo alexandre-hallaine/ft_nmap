@@ -1,3 +1,5 @@
+#include "functions.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <netdb.h>
@@ -5,8 +7,6 @@
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "functions.h"
 
 t_data g_data = {0};
 
@@ -78,19 +78,21 @@ int main(int ac, char **av)
 	printf("--- nmap loaded ---\n\n");
 
 	create_socket();
-	create_packet_ack();
+	// create_packet_ack();
 	// create_packet_syn();
 	// create_packet_fin();
 	// create_packet_null();
 	// create_packet_xmas();
+	create_packet_udp();
 
 	for (unsigned short port = g_data.options.start_port; port <= g_data.options.end_port; port++)
 	{
 		printf("Scanning port %d\r", port);
 		fflush(stdout);
 
-		send_packet_tcp(port);
-		receive_packet_ack(port);
+		// send_packet_tcp(port);
+		send_packet_udp(port);
+		// receive_packet_ack(port);
 		// receive_packet_syn(port);
 		// receive_packet_others(port);
 	}

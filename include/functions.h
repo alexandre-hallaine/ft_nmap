@@ -18,6 +18,10 @@ void create_packet_null();
 void create_packet_xmas();
 void send_packet_tcp(unsigned short port);
 
+// udp.c
+void create_packet_udp();
+void send_packet_udp(unsigned short port);
+
 // packet_ack.c
 void receive_packet_ack(unsigned short port);
 

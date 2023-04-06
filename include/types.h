@@ -1,6 +1,7 @@
 #ifndef NMAP_H
 #define NMAP_H
 
+#include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <limits.h>

@@ -1,7 +1,7 @@
+#include "types.h"
+
 #include <string.h>
 #include <netdb.h>
-
-#include "types.h"
 
 unsigned short checksum(unsigned short *addr, size_t len)
 {
@@ -16,14 +16,8 @@ unsigned short checksum(unsigned short *addr, size_t len)
 	return (~sum);
 }
 
-unsigned short packet_checksum(t_type type, t_packet packet, unsigned short value)
+unsigned short packet_checksum(t_type type, t_packet packet, unsigned short packet_size)
 {
-	size_t packet_size = value;
-	if (type == TCP)
-		packet_size += sizeof(struct tcphdr);
-	else if (type == UDP)
-		packet_size += sizeof(struct udphdr);
-
 	t_ipv4_pseudo_header pseudo_header = {
 		.source_address = g_data.source_ip.in.s_addr,
 		.destination_address = ((struct sockaddr_in *)&g_data.destination.ai_addr)->sin_addr.s_addr,

@@ -1,8 +1,8 @@
+#include "functions.h"
+
 #include <string.h>
 #include <errno.h>
 #include <netinet/ip.h>
-
-#include "functions.h"
 
 void create_packet_ack()
 {
@@ -58,7 +58,7 @@ void create_packet_xmas()
 
 void send_packet_tcp(unsigned short port)
 {
-	unsigned short values = (g_data.packet.tcp.doff - 5) * 4;
+	unsigned short values = g_data.packet.tcp.doff * 4;
 
 	g_data.packet.tcp.dest = htons(port);
 	g_data.packet.tcp.check = packet_checksum(TCP, g_data.packet, values);
