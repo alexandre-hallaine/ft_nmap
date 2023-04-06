@@ -10,6 +10,7 @@ void create_packet_ack()
 	g_data.packet.tcp.source = htons(4242);
 	g_data.packet.tcp.window = htons(1024);
 	g_data.packet.tcp.doff = 5;
+
 	g_data.packet.tcp.ack = 1;
 }
 

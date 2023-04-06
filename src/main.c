@@ -24,20 +24,20 @@ char *get_type(int type)
 {
 	switch (type)
 	{
-		case OPEN:
-			return "open";
-		case CLOSED:
-			return "closed";
-		case FILTERED:
-			return "filtered";
-		case UNFILTERED:
-			return "unfiltered";
-		case UNEXPECTED:
-			return "unexpected";
-		case OPEN_FILTERED:
-			return "open|filtered";
-		default:
-			return "unknown";
+	case OPEN:
+		return "open";
+	case CLOSED:
+		return "closed";
+	case FILTERED:
+		return "filtered";
+	case UNFILTERED:
+		return "unfiltered";
+	case UNEXPECTED:
+		return "unexpected";
+	case OPEN_FILTERED:
+		return "open|filtered";
+	default:
+		return "unknown";
 	}
 }
 
@@ -47,7 +47,7 @@ void result()
 	for (unsigned short index = g_data.options.start_port; index <= g_data.options.end_port; index++)
 		if (g_data.result[index] != UNSCANNED)
 			amount[g_data.result[index]]++;
-	
+
 	t_type default_type = 0;
 	for (t_type type = 0; type < TYPE_SIZE; type++)
 		if (amount[type] > amount[default_type])
@@ -79,9 +79,9 @@ int main(int ac, char **av)
 
 	create_socket();
 	// create_packet_ack();
-	create_packet_syn();
+	// create_packet_syn();
 	// create_packet_fin();
-	//create_packet_null();
+	// create_packet_null();
 	// create_packet_xmas();
 
 	for (unsigned short port = g_data.options.start_port; port <= g_data.options.end_port; port++)
@@ -90,14 +90,12 @@ int main(int ac, char **av)
 		fflush(stdout);
 
 		send_packet_tcp(port);
-		// send_packet_syn(port);
-		// send_packet_others(port);
 		// receive_packet_others(port);
 		// receive_packet_ack(port);
 		// receive_packet_syn(port);
 	}
 	printf("Port scanning finished\n");
-	
+
 	result();
 	return 0;
 }
