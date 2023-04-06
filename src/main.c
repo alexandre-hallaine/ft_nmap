@@ -71,10 +71,12 @@ int main(int ac, char **av)
 		error(1, "usage: %s <host>", av[0]);
 
 	printf("--- Loading nmap ---\n");
-	g_data.source_ip = get_interface(AF_INET);
-	g_data.destination = get_info(av[1]);
+	g_data.options.protocol = UDP;
 	g_data.options.start_port = 22;
 	g_data.options.end_port = 80;
+
+	g_data.source_ip = get_interface(AF_INET);
+	g_data.destination = get_info(av[1]);
 	printf("--- nmap loaded ---\n\n");
 
 	create_socket();

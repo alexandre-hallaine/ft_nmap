@@ -44,8 +44,14 @@ t_addrinfo get_info(char *host)
 	struct addrinfo hints = {0}, *res = NULL;
 
 	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_CANONNAME;
+
+	if (g_data.options.protocol == TCP)
+		hints.ai_protocol = IPPROTO_TCP;
+	else if (g_data.options.protocol == UDP)
+		hints.ai_protocol = IPPROTO_UDP;
+	else
+		error(1, "get_info: unknown protocol\n");
 
 	if (getaddrinfo(host, NULL, &hints, &res) != 0)
 		error(1, "getaddrinfo: %s\n", gai_strerror(errno));

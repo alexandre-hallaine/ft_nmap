@@ -8,7 +8,7 @@ t_addr get_interface(sa_family_t family);
 t_addrinfo get_info(char *host);
 
 // checksum.c
-unsigned short packet_checksum(t_type type, t_packet packet, unsigned short value);
+unsigned short packet_checksum(t_protocol protocol, t_packet packet, unsigned short value);
 
 // tcp.c
 void create_packet_ack();

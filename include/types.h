@@ -12,7 +12,7 @@ typedef struct
 	u_int32_t destination_address;
 	u_int8_t zeros;
 	u_int8_t protocol;
-	u_int16_t tcp_length;
+	u_int16_t length;
 } t_ipv4_pseudo_header;
 
 typedef union
@@ -33,7 +33,7 @@ typedef enum
 {
 	TCP = 0,
 	UDP,
-} t_type;
+} t_protocol;
 
 typedef union
 {
@@ -43,7 +43,7 @@ typedef union
 
 typedef struct
 {
-	t_type type;
+	t_protocol protocol;
 	unsigned short start_port;
 	unsigned short end_port;
 } t_options;
