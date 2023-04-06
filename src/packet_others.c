@@ -5,33 +5,6 @@
 
 #include "functions.h"
 
-void create_packet_fin()
-{
-	g_data.packet.tcp.source = htons(4242);
-	g_data.packet.tcp.window = htons(1024);
-	g_data.packet.tcp.doff = 5;
-
-	g_data.packet.tcp.fin = 1;
-}
-
-void create_packet_null()
-{
-	g_data.packet.tcp.source = htons(4242);
-	g_data.packet.tcp.window = htons(1024);
-	g_data.packet.tcp.doff = 5;
-}
-
-void create_packet_xmas()
-{
-	g_data.packet.tcp.source = htons(4242);
-	g_data.packet.tcp.window = htons(1024);
-	g_data.packet.tcp.doff = 5;
-
-	g_data.packet.tcp.fin = 1;
-	g_data.packet.tcp.psh = 1;
-	g_data.packet.tcp.urg = 1;
-}
-
 void receive_packet_others(unsigned short port)
 {
 	unsigned short source_port = ntohs(g_data.packet.tcp.source);

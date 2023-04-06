@@ -43,23 +43,23 @@ char *get_type(int type)
 
 void result()
 {
-	unsigned short amount[TYPE_SIZE] = {0};
+	unsigned short amount[RESPONSE_MAX] = {0};
 	for (unsigned short index = g_data.options.start_port; index <= g_data.options.end_port; index++)
 		if (g_data.result[index] != UNSCANNED)
 			amount[g_data.result[index]]++;
 
-	t_type default_type = 0;
-	for (t_type type = 0; type < TYPE_SIZE; type++)
-		if (amount[type] > amount[default_type])
-			default_type = type;
-	printf("Not shown: %d ports on state %s\n", amount[default_type], get_type(default_type));
+	t_reponse default_reponse = 0;
+	for (t_reponse type = 0; type < RESPONSE_MAX; type++)
+		if (amount[type] > amount[default_reponse])
+			default_reponse = type;
+	printf("Not shown: %d ports on state %s\n", amount[default_reponse], get_type(default_reponse));
 
-	if (amount[default_type] == g_data.options.end_port - g_data.options.start_port + 1)
+	if (amount[default_reponse] == g_data.options.end_port - g_data.options.start_port + 1)
 		return;
 
 	printf("PORT\tSTATE\n");
 	for (unsigned short index = g_data.options.start_port; index <= g_data.options.end_port; index++)
-		if (g_data.result[index] != UNSCANNED && g_data.result[index] != default_type)
+		if (g_data.result[index] != UNSCANNED && g_data.result[index] != default_reponse)
 			printf("%d\t%s\n", index, get_type(g_data.result[index]));
 }
 
@@ -78,7 +78,7 @@ int main(int ac, char **av)
 	printf("--- nmap loaded ---\n\n");
 
 	create_socket();
-	// create_packet_ack();
+	create_packet_ack();
 	// create_packet_syn();
 	// create_packet_fin();
 	// create_packet_null();
@@ -90,9 +90,9 @@ int main(int ac, char **av)
 		fflush(stdout);
 
 		send_packet_tcp(port);
-		// receive_packet_others(port);
-		// receive_packet_ack(port);
+		receive_packet_ack(port);
 		// receive_packet_syn(port);
+		// receive_packet_others(port);
 	}
 	printf("Port scanning finished\n");
 
