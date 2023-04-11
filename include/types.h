@@ -5,6 +5,7 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <limits.h>
+#include <stdbool.h>
 
 typedef struct
 {
@@ -17,23 +18,37 @@ typedef struct
 
 typedef union
 {
-	struct in_addr in;
-	struct in6_addr in6;
+	struct sockaddr addr;
+	struct sockaddr_in in;
+	struct sockaddr_in6 in6;
+	struct sockaddr_storage storage;
 } t_addr;
 
 typedef struct
 {
-	int ai_family;
-	int ai_protocol;
-	socklen_t ai_addrlen;
-	struct sockaddr ai_addr;
+	int family;
+	int protocol;
+	t_addr addr;
+	socklen_t addrlen;
 } t_addrinfo;
 
 typedef enum
 {
-	TCP = 0,
+	ACK = 0,
+	SYN,
+	FIN,
+	NUL,
+	XMAS,
 	UDP,
 } t_protocol;
+
+typedef struct
+{
+	t_protocol protocol;
+
+	unsigned short port_min;
+	unsigned short port_max;
+} t_options;
 
 typedef union
 {
@@ -41,39 +56,28 @@ typedef union
 	struct udphdr udp;
 } t_packet;
 
-typedef struct
-{
-	t_protocol protocol;
-	unsigned short start_port;
-	unsigned short end_port;
-} t_options;
-
 typedef enum
 {
 	UNSCANNED = 0,
-	UNEXPECTED,
 
 	OPEN,
-	OPEN_FILTERED,
 	CLOSED,
-
 	FILTERED,
 	UNFILTERED,
-} t_reponse;
-#define RESPONSE_MAX 7
+
+	OPEN_FILTERED,
+	CLOSED_FILTERED,
+} t_status;
 
 typedef struct
 {
-	int socket;
-	t_addr source_ip;
+	t_addr interface;
 	t_addrinfo destination;
-
-	t_packet packet;
 	t_options options;
 
-	t_reponse result[USHRT_MAX];
-} t_data;
+	int socket;					// used for receiving packets
+	t_status status[USHRT_MAX]; // status of each port
+} t_scan;
 
-extern t_data g_data;
-
+extern t_scan g_scan;
 #endif

@@ -7,7 +7,13 @@ HEADERS	:= -I ./include
 LIBS	:= -lpcap -lpthread
 SRCDIR	:= ./src
 OBJDIR	:= ./obj
-SRCS	:= $(shell cd $(SRCDIR) && find . -name "*.c")
+SRCS	:=	utils.c \
+			loading/adress.c \
+			loading/parser.c \
+			send/packet.c \
+			send/checksum.c \
+			send/send.c \
+			main.c
 OBJS	:= $(SRCS:%.c=$(OBJDIR)/%.o)
 
 all: $(NAME)
