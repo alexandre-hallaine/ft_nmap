@@ -1,8 +1,8 @@
 #include "functions.h"
 
-#include <string.h>
 #include <netdb.h>
 #include <errno.h>
+#include <string.h>
 #include <netinet/ip.h>
 
 void receive_packet_others(unsigned short port)

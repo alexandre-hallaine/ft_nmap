@@ -13,6 +13,7 @@ SRCS	:=	utils.c \
 			send/packet.c \
 			send/checksum.c \
 			send/send.c \
+			receive/receive.c \
 			main.c
 OBJS	:= $(SRCS:%.c=$(OBJDIR)/%.o)
 

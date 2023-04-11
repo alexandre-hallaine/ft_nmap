@@ -1,8 +1,8 @@
 #include "functions.h"
 
 #include <ifaddrs.h>
-#include <string.h>
 #include <errno.h>
+#include <string.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <stdio.h>

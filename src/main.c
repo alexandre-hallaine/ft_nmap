@@ -6,6 +6,7 @@ int main(int argc, char *argv[])
 {
 	command_parser(argc, argv);
 	send_packet(g_scan.options.protocol);
+	receive_packet(g_scan.options.protocol);
 
 	// receive packet
 	{

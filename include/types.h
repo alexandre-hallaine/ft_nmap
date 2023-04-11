@@ -76,6 +76,7 @@ typedef struct
 	t_options options;
 
 	int socket;					// used for receiving packets
+	bool timeout;				// true if a timeout occured
 	t_status status[USHRT_MAX]; // status of each port
 } t_scan;
 

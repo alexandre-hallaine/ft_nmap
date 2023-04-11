@@ -1,7 +1,7 @@
 #include "functions.h"
 
-#include <string.h>
 #include <errno.h>
+#include <string.h>
 #include <netinet/ip.h>
 #include <stdio.h>
 
