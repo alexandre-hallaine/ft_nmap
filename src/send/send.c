@@ -82,5 +82,10 @@ void send_packet(t_protocol protocol)
 
 		if (sendto(sock, &packet, packet_size, 0, &g_scan.destination.addr.addr, g_scan.destination.addrlen) == -1)
 			error(1, "sendto: %s\n", strerror(errno));
+
+		if (g_scan.status[port] != UNSCANNED)
+			continue;
+		if (protocol == ACK)
+			g_scan.status[port] = FILTERED;
 	}
 }

@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <netinet/ip_icmp.h>
 #include <limits.h>
 #include <stdbool.h>
 
@@ -54,6 +55,7 @@ typedef union
 {
 	struct tcphdr tcp;
 	struct udphdr udp;
+	struct icmphdr icmp;
 } t_packet;
 
 typedef enum
