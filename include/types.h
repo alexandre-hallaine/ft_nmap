@@ -41,11 +41,11 @@ typedef enum
 	NUL,
 	XMAS,
 	UDP,
-} t_protocol;
+} t_technique;
 
 typedef struct
 {
-	t_protocol protocol;
+	t_technique technique;
 
 	unsigned short port_min;
 	unsigned short port_max;
@@ -62,13 +62,10 @@ typedef enum
 {
 	UNSCANNED = 0,
 
-	OPEN,
-	CLOSED,
-	FILTERED,
-	UNFILTERED,
-
-	OPEN_FILTERED,
-	CLOSED_FILTERED,
+	OPEN = 1 << 0,
+	CLOSED = 1 << 1,
+	FILTERED = 1 << 2,
+	UNFILTERED = 1 << 3,
 } t_status;
 
 typedef struct
@@ -78,6 +75,7 @@ typedef struct
 	t_options options;
 
 	int socket;					// used for receiving packets
+	int socket_icmp;			// used for receiving icmp packets
 	bool timeout;				// true if a timeout occured
 	t_status status[USHRT_MAX]; // status of each port
 } t_scan;

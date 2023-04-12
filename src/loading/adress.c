@@ -61,7 +61,6 @@ t_addrinfo get_info(char *host)
 
 	t_addrinfo addr = {
 		.family = res->ai_family,
-		.protocol = res->ai_protocol,
 		.addrlen = res->ai_addrlen,
 	};
 	memcpy(&addr.addr, res->ai_addr, res->ai_addrlen);

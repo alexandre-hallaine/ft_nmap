@@ -14,57 +14,81 @@ void timeout(int sig)
 	g_scan.timeout = true;
 }
 
-void icmp_packet(t_protocol protocol, struct icmphdr icmp)
+void icmp_packet(t_technique technique, struct icmphdr icmp, t_packet *packet)
 {
 	if (icmp.type != ICMP_UNREACH)
 		return;
 
-	if (icmp.code == ICMP_UNREACH_HOST ||
-		icmp.code == ICMP_UNREACH_PROTOCOL ||
-		icmp.code == ICMP_UNREACH_PORT ||
-		icmp.code == ICMP_UNREACH_NET_PROHIB ||
-		icmp.code == ICMP_UNREACH_HOST_PROHIB ||
-		icmp.code == ICMP_UNREACH_FILTER_PROHIB)
-	{
-		// need to get the port!
-	}
-	(void)protocol;
+	if (icmp.code != ICMP_UNREACH_HOST &&
+		icmp.code != ICMP_UNREACH_PROTOCOL &&
+		icmp.code != ICMP_UNREACH_PORT &&
+		icmp.code != ICMP_UNREACH_NET_PROHIB &&
+		icmp.code != ICMP_UNREACH_HOST_PROHIB &&
+		icmp.code != ICMP_UNREACH_FILTER_PROHIB)
+		return;
+
+	unsigned port = g_scan.destination.protocol == IPPROTO_TCP ? ntohs(packet->tcp.dest) : ntohs(packet->udp.dest);
+	if (icmp.code == ICMP_UNREACH_PORT && technique == UDP)
+		g_scan.status[port] = CLOSED;
+	else
+		g_scan.status[port] = FILTERED;
 }
 
-void receive_packet(t_protocol protocol)
+void default_packet(t_technique technique, t_packet *packet)
 {
-	(void)protocol;
+	unsigned short port = g_scan.destination.protocol == IPPROTO_TCP ? ntohs(packet->tcp.source) : ntohs(packet->udp.source);
+	switch (technique)
+	{
+	case ACK:
+		if (packet->tcp.rst)
+			g_scan.status[port] = UNFILTERED;
+		break;
+	case SYN:
+		if (packet->tcp.syn && packet->tcp.ack)
+			g_scan.status[port] = OPEN;
+		else if (packet->tcp.rst)
+			g_scan.status[port] = CLOSED;
+		break;
+	case FIN:
+	case NUL:
+	case XMAS:
+		if (packet->tcp.rst)
+			g_scan.status[port] = CLOSED;
+		break;
+	case UDP:
+		g_scan.status[port] = OPEN;
+		break;
+	}
+}
+
+void receive_packet(t_technique technique)
+{
+	(void)technique;
 
 	g_scan.timeout = false;
 	signal(SIGALRM, timeout);
 	alarm(1); // 1 second timeout
 
-	char buffer[sizeof(struct iphdr) + sizeof(t_packet)];
+	char buffer[sizeof(struct iphdr) + sizeof(t_packet) + sizeof(struct iphdr) + sizeof(t_packet)]; // ip + packet + icmp error data
 	t_addr source;
 	socklen_t source_len = sizeof(source);
-	uint8_t protocol_id = protocol == UDP ? IPPROTO_UDP : IPPROTO_TCP;
 
 	while (!g_scan.timeout)
 	{
-		if (recvfrom(g_scan.socket, buffer, sizeof(buffer), 0, &source.addr, &source_len) == -1)
-			error(1, "recvfrom: %s\n", strerror(errno));
+		if (recvfrom(g_scan.socket, buffer, sizeof(buffer), MSG_DONTWAIT, &source.addr, &source_len) == -1)
+			if (recvfrom(g_scan.socket_icmp, buffer, sizeof(buffer), MSG_DONTWAIT, &source.addr, &source_len) == -1)
+				continue;
 		if (memcmp(&source.addr, &g_scan.destination.addr, source_len))
 			continue;
 
 		struct iphdr *ip_header = (struct iphdr *)buffer;
 		t_packet *packet = (t_packet *)(buffer + sizeof(struct iphdr));
 
-		// if (ip_header->protocol == IPPROTO_ICMP)
-		// 	icmp_packet(protocol, packet.icmp);
-		if (ip_header->protocol != protocol_id)
-			continue;
-
-		unsigned short port;
-		if (protocol == UDP)
-			port = ntohs(packet->udp.source);
-		else
-			port = ntohs(packet->tcp.source);
-
-		printf("port: %d\n", port);
+		if (ip_header->protocol == IPPROTO_ICMP)
+			icmp_packet(technique, packet->icmp, (t_packet *)(buffer + sizeof(struct iphdr) + sizeof(struct icmphdr) + sizeof(struct iphdr)));
+		else if (ip_header->protocol == g_scan.destination.protocol)
+			default_packet(technique, packet);
 	}
+
+	print_result();
 }

@@ -5,8 +5,8 @@ t_scan g_scan = {0};
 int main(int argc, char *argv[])
 {
 	command_parser(argc, argv);
-	send_packet(g_scan.options.protocol);
-	receive_packet(g_scan.options.protocol);
+	send_packet(g_scan.options.technique);
+	receive_packet(g_scan.options.technique);
 
 	// receive packet
 	{

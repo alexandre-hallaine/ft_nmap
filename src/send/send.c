@@ -5,9 +5,9 @@
 #include <netinet/ip.h>
 #include <stdio.h>
 
-t_packet create_packet(t_protocol protocol)
+t_packet create_packet(t_technique technique)
 {
-	switch (protocol)
+	switch (technique)
 	{
 	case ACK:
 		return create_packet_ack();
@@ -22,41 +22,25 @@ t_packet create_packet(t_protocol protocol)
 	case UDP:
 		return create_packet_udp();
 	default:
-		error(3, "send_packet: protocol not supported\n");
+		error(3, "create_packet: unknown technique\n");
 		return (t_packet){0}; // to avoid warning
 	}
 }
 
-char *get_protocol_name(t_protocol protocol)
+void send_packet(t_technique technique)
 {
-	switch (protocol)
+	printf("Sending packet... (technique: %s)\n", get_technique_name(technique));
+
+	t_packet packet = create_packet(technique);
+	g_scan.destination.protocol = technique == UDP ? IPPROTO_UDP : IPPROTO_TCP;
+
+	// use to receive response (it will saved every response)
 	{
-	case ACK:
-		return "ACK";
-	case SYN:
-		return "SYN";
-	case FIN:
-		return "FIN";
-	case NUL:
-		return "NUL";
-	case XMAS:
-		return "XMAS";
-	case UDP:
-		return "UDP";
-	default:
-		error(3, "send_packet: protocol not supported\n");
-		return NULL; // to avoid warning
+		if ((g_scan.socket = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol)) == -1)
+			error(1, "socket: %s\n", strerror(errno));
+		if ((g_scan.socket_icmp = socket(g_scan.destination.family, SOCK_RAW, IPPROTO_ICMP)) == -1)
+			error(1, "socket: %s\n", strerror(errno));
 	}
-}
-
-void send_packet(t_protocol protocol)
-{
-	printf("Sending packet... (protocol: %s)\n", get_protocol_name(protocol));
-
-	t_packet packet = create_packet(protocol);
-
-	if ((g_scan.socket = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol)) == -1)
-		error(1, "socket: %s\n", strerror(errno));
 
 	int sock = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol);
 	if (sock == -1)
@@ -66,26 +50,27 @@ void send_packet(t_protocol protocol)
 	{
 		unsigned short packet_size;
 
-		if (protocol == UDP)
-		{
-			packet_size = sizeof(struct udphdr);
-			packet.udp.dest = htons(port);
-			packet.udp.check = 0;
-		}
-		else
+		if (g_scan.destination.protocol == IPPROTO_TCP)
 		{
 			packet_size = sizeof(struct tcphdr);
 			packet.tcp.dest = htons(port);
 			packet.tcp.check = 0;
 		}
-		update_checksum(protocol == UDP ? IPPROTO_UDP : IPPROTO_TCP, &packet, packet_size);
+		else
+		{
+			packet_size = sizeof(struct udphdr);
+			packet.udp.dest = htons(port);
+			packet.udp.check = 0;
+		}
+		update_checksum(g_scan.destination.protocol, &packet, packet_size);
 
 		if (sendto(sock, &packet, packet_size, 0, &g_scan.destination.addr.addr, g_scan.destination.addrlen) == -1)
 			error(1, "sendto: %s\n", strerror(errno));
 
 		if (g_scan.status[port] != UNSCANNED)
 			continue;
-		if (protocol == ACK)
-			g_scan.status[port] = FILTERED;
+		g_scan.status[port] = FILTERED;
+		if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
+			g_scan.status[port] |= OPEN;
 	}
 }

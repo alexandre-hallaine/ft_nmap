@@ -11,7 +11,7 @@ void usage(char *program)
 
 	printf("options:\n");
 	printf("\t-h:\t\t\tdisplay this help\n");
-	printf("\t-s <protocol>:\t\tscan with the specified protocol\n");
+	printf("\t-s <technique>:\t\tscan with the specified technique (default: SYN)\n");
 	printf("\t\tA: ACK\n");
 	printf("\t\tS: SYN\n");
 	printf("\t\tF: FIN\n");
@@ -22,31 +22,31 @@ void usage(char *program)
 	exit(1);
 }
 
-void parse_protocol(char *protocol)
+void parse_technique(char *technique)
 {
-	for (unsigned char i = 0; i < strlen(protocol); i++)
-		switch (protocol[i])
+	for (unsigned char i = 0; i < strlen(technique); i++)
+		switch (technique[i])
 		{
 		case 'A':
-			g_scan.options.protocol = ACK;
+			g_scan.options.technique = ACK;
 			break;
 		case 'S':
-			g_scan.options.protocol = SYN;
+			g_scan.options.technique = SYN;
 			break;
 		case 'F':
-			g_scan.options.protocol = FIN;
+			g_scan.options.technique = FIN;
 			break;
 		case 'N':
-			g_scan.options.protocol = NUL;
+			g_scan.options.technique = NUL;
 			break;
 		case 'X':
-			g_scan.options.protocol = XMAS;
+			g_scan.options.technique = XMAS;
 			break;
 		case 'U':
-			g_scan.options.protocol = UDP;
+			g_scan.options.technique = UDP;
 			break;
 		default:
-			error(2, "usage: %c: invalid protocol\n", protocol[i]);
+			error(2, "usage: %c: unknown technique\n", technique[i]);
 		}
 }
 
@@ -74,7 +74,7 @@ void flag_parser(unsigned short *index, char *argv[])
 		if (argv[*index][2] != '\0' || argv[*index + 1] == NULL)
 			usage(argv[0]);
 		(*index)++;
-		parse_protocol(argv[*index]);
+		parse_technique(argv[*index]);
 		break;
 	case 'p':
 		if (argv[*index][2] != '\0' || argv[*index + 1] == NULL)
@@ -91,6 +91,10 @@ void command_parser(int argc, char *argv[])
 {
 	if (getuid() != 0)
 		error(1, "usage: You need to be root to run this program\n");
+	
+	g_scan.options.technique = SYN;
+	g_scan.options.port_min = 1;
+	g_scan.options.port_max = 1024;
 
 	unsigned short index = 1;
 	while (index < argc && argv[index][0] == '-')

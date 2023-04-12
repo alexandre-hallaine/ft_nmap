@@ -5,6 +5,8 @@
 
 // utils.c
 void error(int code, char *fmt, ...);
+char *get_technique_name(t_technique technique);
+void print_status_name(t_status status);
 
 // address.c
 t_addr get_interface(int family);
@@ -22,12 +24,15 @@ t_packet create_packet_xmas();
 t_packet create_packet_udp();
 
 // checksum.c
-void update_checksum(u_int8_t protocol_type, t_packet *packet, unsigned short packet_size);
+void update_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size);
 
 // send.c
-void send_packet(t_protocol protocol);
+void send_packet(t_technique technique);
+
+// result.c
+void print_result();
 
 // receive.c
-void receive_packet(t_protocol protocol);
+void receive_packet(t_technique technique);
 
 #endif
