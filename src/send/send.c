@@ -45,6 +45,9 @@ void send_packet(t_technique technique)
 	int sock = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol);
 	if (sock == -1)
 		error(1, "socket: %s\n", strerror(errno));
+	int optval = 1024 * 1024; // set buffer size to 1MB to avoid 'No buffer space available'
+	if (setsockopt(sock, SOL_SOCKET, SO_SNDBUFFORCE, &optval, sizeof(optval)) == -1)
+		error(1, "setsockopt: %s\n", strerror(errno));
 
 	for (unsigned short port = g_scan.options.port_min; port <= g_scan.options.port_max; port++)
 	{
