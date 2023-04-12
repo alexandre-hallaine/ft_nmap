@@ -42,10 +42,11 @@ typedef enum
 	XMAS,
 	UDP,
 } t_technique;
+#define TECHNIQUE_COUNT 6
 
 typedef struct
 {
-	t_technique technique;
+	bool techniques[TECHNIQUE_COUNT];
 
 	unsigned short port_min;
 	unsigned short port_max;
@@ -70,14 +71,15 @@ typedef enum
 
 typedef struct
 {
+	t_options options;
 	t_addr interface;
 	t_addrinfo destination;
-	t_options options;
 
-	int socket;					// used for receiving packets
-	int socket_icmp;			// used for receiving icmp packets
-	bool timeout;				// true if a timeout occured
-	t_status status[USHRT_MAX]; // status of each port
+	t_status status[TECHNIQUE_COUNT][USHRT_MAX]; // status of each port
+
+	int socket;		 // used to saved every received packet
+	int socket_icmp; // used to save every received icmp packet
+	bool timeout;	 // true if the received have exceeded the timeout
 } t_scan;
 
 extern t_scan g_scan;

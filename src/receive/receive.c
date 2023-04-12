@@ -29,9 +29,9 @@ void icmp_packet(t_technique technique, struct icmphdr icmp, t_packet *packet)
 
 	unsigned port = g_scan.destination.protocol == IPPROTO_TCP ? ntohs(packet->tcp.dest) : ntohs(packet->udp.dest);
 	if (icmp.code == ICMP_UNREACH_PORT && technique == UDP)
-		g_scan.status[port] = CLOSED;
+		g_scan.status[technique][port] = CLOSED;
 	else
-		g_scan.status[port] = FILTERED;
+		g_scan.status[technique][port] = FILTERED;
 }
 
 void default_packet(t_technique technique, t_packet *packet)
@@ -41,22 +41,22 @@ void default_packet(t_technique technique, t_packet *packet)
 	{
 	case ACK:
 		if (packet->tcp.rst)
-			g_scan.status[port] = UNFILTERED;
+			g_scan.status[technique][port] = UNFILTERED;
 		break;
 	case SYN:
 		if (packet->tcp.syn && packet->tcp.ack)
-			g_scan.status[port] = OPEN;
+			g_scan.status[technique][port] = OPEN;
 		else if (packet->tcp.rst)
-			g_scan.status[port] = CLOSED;
+			g_scan.status[technique][port] = CLOSED;
 		break;
 	case FIN:
 	case NUL:
 	case XMAS:
 		if (packet->tcp.rst)
-			g_scan.status[port] = CLOSED;
+			g_scan.status[technique][port] = CLOSED;
 		break;
 	case UDP:
-		g_scan.status[port] = OPEN;
+		g_scan.status[technique][port] = OPEN;
 		break;
 	}
 }
@@ -90,5 +90,5 @@ void receive_packet(t_technique technique)
 			default_packet(technique, packet);
 	}
 
-	print_result();
+	print_result(technique);
 }

@@ -2,12 +2,12 @@
 
 #include <stdio.h>
 
-void print_result()
+void print_result(t_technique technique)
 {
 	unsigned short amount[(OPEN | CLOSED | FILTERED | UNFILTERED) + 1] = {0};
 	for (unsigned short index = g_scan.options.port_min; index <= g_scan.options.port_max; index++)
-		if (g_scan.status[index] != UNSCANNED)
-			amount[g_scan.status[index]]++;
+		if (g_scan.status[technique][index] != UNSCANNED)
+			amount[g_scan.status[technique][index]]++;
 
 	t_status default_status = 0;
 	for (t_status type = 1; type <= (OPEN | CLOSED | FILTERED | UNFILTERED); type++)
@@ -21,9 +21,9 @@ void print_result()
 
 	printf("PORT\tSTATE\n");
 	for (unsigned short index = g_scan.options.port_min; index <= g_scan.options.port_max; index++)
-		if (g_scan.status[index] != UNSCANNED && g_scan.status[index] != default_status)
+		if (g_scan.status[technique][index] != UNSCANNED && g_scan.status[technique][index] != default_status)
 		{
 			printf("%d\t", index);
-			print_status_name(g_scan.status[index]);
+			print_status_name(g_scan.status[technique][index]);
 		}
 }

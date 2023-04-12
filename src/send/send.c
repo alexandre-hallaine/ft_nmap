@@ -67,10 +67,10 @@ void send_packet(t_technique technique)
 		if (sendto(sock, &packet, packet_size, 0, &g_scan.destination.addr.addr, g_scan.destination.addrlen) == -1)
 			error(1, "sendto: %s\n", strerror(errno));
 
-		if (g_scan.status[port] != UNSCANNED)
+		if (g_scan.status[technique][port] != UNSCANNED)
 			continue;
-		g_scan.status[port] = FILTERED;
+		g_scan.status[technique][port] = FILTERED;
 		if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
-			g_scan.status[port] |= OPEN;
+			g_scan.status[technique][port] |= OPEN;
 	}
 }

@@ -30,7 +30,7 @@ void update_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_
 void send_packet(t_technique technique);
 
 // result.c
-void print_result();
+void print_result(t_technique technique);
 
 // receive.c
 void receive_packet(t_technique technique);
