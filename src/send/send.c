@@ -4,6 +4,7 @@
 #include <string.h>
 #include <netinet/ip.h>
 #include <stdio.h>
+#include <unistd.h>
 
 t_packet create_packet(t_technique technique)
 {
@@ -27,13 +28,8 @@ t_packet create_packet(t_technique technique)
 	}
 }
 
-void send_packet(t_technique technique)
+int create_socket()
 {
-	printf("Sending packet... (technique: %s)\n", get_technique_name(technique));
-
-	t_packet packet = create_packet(technique);
-	g_scan.destination.protocol = technique == UDP ? IPPROTO_UDP : IPPROTO_TCP;
-
 	// use to receive response (it will saved every response)
 	{
 		if ((g_scan.socket = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol)) == -1)
@@ -52,7 +48,16 @@ void send_packet(t_technique technique)
 		bind(sock, (struct sockaddr *)&g_scan.interface.in, sizeof(g_scan.interface.in));
 	else
 		bind(sock, (struct sockaddr *)&g_scan.interface.in6, sizeof(g_scan.interface.in6));
+	return sock;
+}
 
+void send_packet(t_technique technique)
+{
+	t_packet packet = create_packet(technique);
+	g_scan.destination.protocol = technique == UDP ? IPPROTO_UDP : IPPROTO_TCP;
+	int sock = create_socket();
+
+	printf("Sending packet... (technique: %s)\n", get_technique_name(technique));
 	for (unsigned short port = g_scan.options.port_min; port <= g_scan.options.port_max; port++)
 	{
 		unsigned short packet_size;
@@ -80,4 +85,5 @@ void send_packet(t_technique technique)
 		if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
 			g_scan.status[technique][port] |= OPEN;
 	}
+	close(sock);
 }

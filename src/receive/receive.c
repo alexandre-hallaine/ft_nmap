@@ -105,5 +105,7 @@ void receive_packet(t_technique technique)
 			default_packet(technique, packet);
 	}
 
+	close(g_scan.socket);
+	close(g_scan.socket_icmp);
 	print_result(technique);
 }
