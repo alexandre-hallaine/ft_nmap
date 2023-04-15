@@ -17,7 +17,7 @@ t_addr get_interface(int family)
 	t_addr addr = {0};
 	bool found = false;
 	for (struct ifaddrs *tmp = ifaddr; tmp != NULL; tmp = tmp->ifa_next)
-		if (tmp->ifa_addr->sa_family == family && !(tmp->ifa_flags & IFF_LOOPBACK))
+		if (tmp->ifa_addr && tmp->ifa_addr->sa_family == family && !(tmp->ifa_flags & IFF_LOOPBACK))
 		{
 			if (tmp->ifa_addr->sa_family == AF_INET)
 				addr.in = *(struct sockaddr_in *)tmp->ifa_addr;
@@ -37,10 +37,9 @@ t_addr get_interface(int family)
 			break;
 		}
 
+	freeifaddrs(ifaddr);
 	if (!found)
 		error(1, "get_interface: no interface found\n");
-
-	freeifaddrs(ifaddr);
 	return addr;
 }
 
