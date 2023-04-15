@@ -48,6 +48,10 @@ void send_packet(t_technique technique)
 	int optval = 1024 * 1024; // set buffer size to 1MB to avoid 'No buffer space available'
 	if (setsockopt(sock, SOL_SOCKET, SO_SNDBUFFORCE, &optval, sizeof(optval)) == -1)
 		error(1, "setsockopt: %s\n", strerror(errno));
+	if (g_scan.destination.family == AF_INET)
+		bind(sock, (struct sockaddr *)&g_scan.interface.in, sizeof(g_scan.interface.in));
+	else
+		bind(sock, (struct sockaddr *)&g_scan.interface.in6, sizeof(g_scan.interface.in6));
 
 	for (unsigned short port = g_scan.options.port_min; port <= g_scan.options.port_max; port++)
 	{

@@ -17,6 +17,15 @@ typedef struct
 	u_int16_t length;
 } t_ipv4_pseudo_header;
 
+typedef struct
+{
+	u_int32_t source_address[4];
+	u_int32_t destination_address[4];
+	u_int32_t length;
+	u_int8_t zeros[3];
+	u_int8_t next_header;
+} t_ipv6_pseudo_header;
+
 typedef union
 {
 	struct sockaddr addr;
