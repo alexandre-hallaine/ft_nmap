@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/ip_icmp.h>
 
 void timeout(int sig)
@@ -69,24 +70,38 @@ void receive_packet(t_technique technique)
 	signal(SIGALRM, timeout);
 	alarm(1); // 1 second timeout
 
-	char buffer[sizeof(struct iphdr) + sizeof(t_packet) + sizeof(struct iphdr) + sizeof(t_packet)]; // ip + packet + icmp error data
+	char buffer[sizeof(struct ip6_hdr) + sizeof(t_packet) + sizeof(struct ip6_hdr) + sizeof(t_packet)]; // ip + packet + icmp error data
 	t_addr source;
 	socklen_t source_len = sizeof(source);
 
 	while (!g_scan.timeout)
 	{
-		if (recvfrom(g_scan.socket, buffer, sizeof(buffer), MSG_DONTWAIT, &source.addr, &source_len) == -1)
-			if (recvfrom(g_scan.socket_icmp, buffer, sizeof(buffer), MSG_DONTWAIT, &source.addr, &source_len) == -1)
-				continue;
+		uint8_t protocol;
+		if (recvfrom(g_scan.socket, buffer, sizeof(buffer), MSG_DONTWAIT, &source.addr, &source_len) > 0)
+			protocol = g_scan.destination.protocol;
+		else if (recvfrom(g_scan.socket_icmp, buffer, sizeof(buffer), MSG_DONTWAIT, &source.addr, &source_len) > 0)
+			protocol = IPPROTO_ICMP;
+		else
+			continue;
+
 		if (memcmp(&source.addr, &g_scan.destination.addr, source_len))
 			continue;
 
-		struct iphdr *ip_header = (struct iphdr *)buffer;
-		t_packet *packet = (t_packet *)(buffer + sizeof(struct iphdr));
+		unsigned char ip_size;
+		if (g_scan.destination.family == AF_INET)
+			ip_size = sizeof(struct iphdr);
+		else if (g_scan.destination.family == AF_INET6)
+			ip_size = sizeof(struct ip6_hdr);
+		else
+			continue;
 
-		if (ip_header->protocol == IPPROTO_ICMP)
-			icmp_packet(technique, packet->icmp, (t_packet *)(buffer + sizeof(struct iphdr) + sizeof(struct icmphdr) + sizeof(struct iphdr)));
-		else if (ip_header->protocol == g_scan.destination.protocol)
+		t_packet *packet = (t_packet *)buffer;
+		if (g_scan.destination.family == AF_INET)
+			packet = (t_packet *)((char *)packet + ip_size);
+
+		if (protocol == IPPROTO_ICMP)
+			icmp_packet(technique, packet->icmp, (t_packet *)((char *)packet + sizeof(struct icmphdr) + ip_size));
+		else
 			default_packet(technique, packet);
 	}
 

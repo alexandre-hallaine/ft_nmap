@@ -18,8 +18,7 @@ unsigned short checksum(unsigned short *addr, size_t len)
 
 void update_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size)
 {
-
-	unsigned short ip_size;
+	unsigned char ip_size;
 	if (g_scan.destination.family == AF_INET)
 		ip_size = sizeof(t_ipv4_pseudo_header);
 	else if (g_scan.destination.family == AF_INET6)
