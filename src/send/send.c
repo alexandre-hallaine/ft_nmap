@@ -6,28 +6,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-t_packet create_packet(t_technique technique)
-{
-	switch (technique)
-	{
-	case ACK:
-		return create_packet_ack();
-	case SYN:
-		return create_packet_syn();
-	case FIN:
-		return create_packet_fin();
-	case NUL:
-		return create_packet_null();
-	case XMAS:
-		return create_packet_xmas();
-	case UDP:
-		return create_packet_udp();
-	default:
-		error(3, "create_packet: unknown technique\n");
-		return (t_packet){0}; // to avoid warning
-	}
-}
-
 int create_socket()
 {
 	// use to receive response (it will saved every response)
@@ -61,7 +39,6 @@ void send_packet(t_technique technique)
 	for (unsigned short port = g_scan.options.port_min; port <= g_scan.options.port_max; port++)
 	{
 		unsigned short packet_size;
-
 		if (g_scan.destination.protocol == IPPROTO_TCP)
 		{
 			packet_size = sizeof(struct tcphdr);

@@ -16,12 +16,7 @@ t_addrinfo get_info(char *host);
 void command_parser(int argc, char *argv[]);
 
 // packet.c
-t_packet create_packet_ack();
-t_packet create_packet_syn();
-t_packet create_packet_fin();
-t_packet create_packet_null();
-t_packet create_packet_xmas();
-t_packet create_packet_udp();
+t_packet create_packet(t_technique technique);
 
 // checksum.c
 void update_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size);
