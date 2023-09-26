@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 
 void usage(char *program)
@@ -33,6 +32,7 @@ void parse_port_range(char *port_range)
 	g_scan.options.port_min = atoi(port_range);
 	g_scan.options.port_max = atoi(delimiter + 1);
 
+	// make error messages more accurate
     if (g_scan.options.port_min <= 0 || g_scan.options.port_max <= 0) // can't be 0 or negative	(negative check unnecessary if properly isnumber before)
         error(2, "usage: %s: invalid port range\n", port_range);
 	else if (g_scan.options.port_min >= g_scan.options.port_max) // min must be smaller than max
@@ -68,72 +68,4 @@ void parse_technique(char *technique)
 		default:
 			error(2, "usage: %c: unknown technique\n", technique[i]);
 		}
-}
-
-void flag_parser(unsigned short *index, char *argv[])
-{
-	if (argv[*index][2] != '\0') // use -h instead of -help
-		error(2, "usage: %s: invalid option\n", argv[*index]);
-
-	switch (argv[*index][1]) // repeated code perhaps we can figure out a way to make this more efficient (make shit fall into h ?)
-	{
-	case 'h':
-		usage(argv[0]);
-		break;
-
-	case 'p':
-		(*index)++;
-		if (argv[*index] == NULL)
-			usage(argv[0]);
-
-		parse_port_range(argv[*index]);
-		break;
-
-	case 's':
-		(*index)++;
-		if (argv[*index] == NULL)
-			usage(argv[0]);
-
-		parse_technique(argv[*index]);
-		break;
-
-	default:
-		error(2, "usage: %s: invalid option\n", argv[*index]);
-	}
-}
-
-void command_parser(int argc, char *argv[])
-{
-	if (getuid() != 0)
-		error(1, "usage: You need to be root to run this program\n");
-
-	g_scan.options.port_min = 1;
-	g_scan.options.port_max = 1024; // why not just give it in the .h file?
-
-	unsigned short index = 1; // for loop is better ?
-	while (index < argc && argv[index][0] == '-')
-	{
-		flag_parser(&index, argv);
-		index++;
-	}
-
-	// if no technique is specified, scan with all of them
-    // ok but why is this within a block ?
-	{
-		bool technique_specified = false; // can't this be checked within parse_technique ?
-		for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-			if (g_scan.options.techniques[i])
-				technique_specified = true; // why not just break here ?
-
-		if (!technique_specified)
-			for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-				g_scan.options.techniques[i] = true;
-            //  memset(g_scan.options.techniques, true, TECHNIQUE_COUNT); imo this is better
-	}
-
-    // I feel like this should be done before the flags
-	if (index != argc - 1)
-		usage(argv[0]);
-	g_scan.destination = get_info(argv[index]);
-	g_scan.interface = get_interface(g_scan.destination.family);
 }
