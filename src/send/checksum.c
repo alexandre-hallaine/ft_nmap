@@ -5,6 +5,7 @@
 
 unsigned short checksum(unsigned short *addr, size_t len)
 {
+    // needs some comments (not chatgpt :) )
 	unsigned long sum = 0;
 	for (; len > sizeof(char); len -= sizeof(short))
 		sum += *addr++;
@@ -18,6 +19,7 @@ unsigned short checksum(unsigned short *addr, size_t len)
 
 void update_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size)
 {
+    // needs some comments (not chatgpt :) )
 	unsigned char ip_size = g_scan.destination.family == AF_INET ? sizeof(t_ipv4_pseudo_header) : sizeof(t_ipv6_pseudo_header);
 	char buffer[ip_size + packet_size];
 	if (g_scan.destination.family == AF_INET)

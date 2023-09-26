@@ -1,6 +1,6 @@
 NAME	:= ft_nmap
 CFLAGS	:= -Wall -Wextra
-# CFLAGS	+= -Werror
+CFLAGS	+= -Werror
 # CFLAGS	:= -Ofast
 
 HEADERS	:= -I ./include

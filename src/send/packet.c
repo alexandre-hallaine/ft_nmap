@@ -2,6 +2,7 @@
 
 t_packet create_packet(t_technique technique)
 {
+    // needs some comments (not chatgpt :) )
 	t_packet packet = {0};
 	if (technique == UDP)
 	{

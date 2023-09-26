@@ -10,6 +10,7 @@
 
 t_addr get_interface(int family)
 {
+    // needs some comments (not chatgpt :) )
 	struct ifaddrs *ifaddr;
 	if (getifaddrs(&ifaddr) == -1)
 		error(1, "getifaddrs: %s\n", strerror(errno));
@@ -43,6 +44,7 @@ t_addr get_interface(int family)
 
 t_addrinfo get_info(char *host)
 {
+    // needs some comments (not chatgpt :) )
 	struct addrinfo *res, hints = {.ai_flags = AI_CANONNAME};
 	if (getaddrinfo(host, NULL, &hints, &res) != 0)
 		error(1, "getaddrinfo: %s\n", gai_strerror(errno));

@@ -8,6 +8,7 @@
 
 int create_socket()
 {
+    // needs some comments (not chatgpt :) )
 	// use to receive response (it will saved every response)
 	{
 		if ((g_scan.socket = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol)) == -1)
@@ -31,6 +32,7 @@ int create_socket()
 
 void send_packet(t_technique technique)
 {
+    // needs some comments (not chatgpt :) )
 	t_packet packet = create_packet(technique);
 	g_scan.destination.protocol = technique == UDP ? IPPROTO_UDP : IPPROTO_TCP;
 	int sock = create_socket();
@@ -57,10 +59,10 @@ void send_packet(t_technique technique)
 			error(1, "sendto: %s\n", strerror(errno));
 
 		if (g_scan.status[technique][port] != UNSCANNED)
-			continue;
-		g_scan.status[technique][port] = FILTERED;
+			continue; // still think this is useless
+		g_scan.status[technique][port] = FILTERED; // why ?
 		if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
-			g_scan.status[technique][port] |= OPEN;
+			g_scan.status[technique][port] |= OPEN; // why ?
 	}
 	close(sock);
 }

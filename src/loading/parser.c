@@ -9,6 +9,7 @@ void usage(char *program)
 {
 	printf("usage: %s [options] <host>\n", program);
 
+    // should buffer this
 	printf("options:\n");
 	printf("\t-h:\t\t\tdisplay this help\n");
 	printf("\t-p <port min>-<port max>:\tscan the specified port range (default: 1-1024)\n");
@@ -28,11 +29,16 @@ void parse_port_range(char *port_range)
 	if (delimiter == NULL)
 		error(2, "usage: %s: invalid port range\n", port_range);
 
+    // Check if number plz
 	g_scan.options.port_min = atoi(port_range);
 	g_scan.options.port_max = atoi(delimiter + 1);
 
-	if (g_scan.options.port_min > g_scan.options.port_max)
+    if (g_scan.options.port_min <= 0 || g_scan.options.port_max <= 0) // can't be 0 or negative	(negative check unnecessary if properly isnumber before)
+        error(2, "usage: %s: invalid port range\n", port_range);
+	else if (g_scan.options.port_min >= g_scan.options.port_max) // min must be smaller than max
 		error(2, "usage: %s: invalid port range\n", port_range);
+    else if (g_scan.options.port_max - g_scan.options.port_min + 1 > 1024) // max - min + 1 must be smaller than 1024 (subject)
+        error(2, "usage: %s: port range exceeding 1024\n", port_range);
 }
 
 void parse_technique(char *technique)
@@ -69,7 +75,7 @@ void flag_parser(unsigned short *index, char *argv[])
 	if (argv[*index][2] != '\0') // use -h instead of -help
 		error(2, "usage: %s: invalid option\n", argv[*index]);
 
-	switch (argv[*index][1])
+	switch (argv[*index][1]) // repeated code perhaps we can figure out a way to make this more efficient (make shit fall into h ?)
 	{
 	case 'h':
 		usage(argv[0]);
@@ -102,9 +108,9 @@ void command_parser(int argc, char *argv[])
 		error(1, "usage: You need to be root to run this program\n");
 
 	g_scan.options.port_min = 1;
-	g_scan.options.port_max = 1024;
+	g_scan.options.port_max = 1024; // why not just give it in the .h file?
 
-	unsigned short index = 1;
+	unsigned short index = 1; // for loop is better ?
 	while (index < argc && argv[index][0] == '-')
 	{
 		flag_parser(&index, argv);
@@ -112,17 +118,20 @@ void command_parser(int argc, char *argv[])
 	}
 
 	// if no technique is specified, scan with all of them
+    // ok but why is this within a block ?
 	{
-		bool technique_specified = false;
+		bool technique_specified = false; // can't this be checked within parse_technique ?
 		for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
 			if (g_scan.options.techniques[i])
-				technique_specified = true;
+				technique_specified = true; // why not just break here ?
 
 		if (!technique_specified)
 			for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
 				g_scan.options.techniques[i] = true;
+            //  memset(g_scan.options.techniques, true, TECHNIQUE_COUNT); imo this is better
 	}
 
+    // I feel like this should be done before the flags
 	if (index != argc - 1)
 		usage(argv[0]);
 	g_scan.destination = get_info(argv[index]);

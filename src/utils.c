@@ -10,7 +10,7 @@ void error(int code, char *fmt, ...)
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-	exit(code);
+	exit(code); // need to explain something to you on this
 }
 
 char *get_technique_name(t_technique technique)

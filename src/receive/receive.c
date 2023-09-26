@@ -64,11 +64,13 @@ void default_packet(t_technique technique, t_packet *packet)
 
 void receive_packet(t_technique technique)
 {
-	(void)technique;
+    // needs some comments (not chatgpt :) )
+	(void)technique; // useless ?
 
 	g_scan.timeout = false;
 	signal(SIGALRM, timeout);
 	alarm(1); // 1 second timeout
+    // perhaps slightly more time ?
 
 	char buffer[sizeof(struct ip6_hdr) + sizeof(t_packet) + sizeof(struct ip6_hdr) + sizeof(t_packet)]; // ip + packet + icmp error data
 	t_addr source;
@@ -82,7 +84,7 @@ void receive_packet(t_technique technique)
 		else if (recvfrom(g_scan.socket_icmp, buffer, sizeof(buffer), MSG_DONTWAIT, &source.addr, &source_len) > 0)
 			protocol = IPPROTO_ICMP;
 		else
-			continue;
+			continue; // why
 
 		if (memcmp(&source.addr, &g_scan.destination.addr, source_len))
 			continue;
@@ -93,7 +95,7 @@ void receive_packet(t_technique technique)
 		else if (g_scan.destination.family == AF_INET6)
 			ip_size = sizeof(struct ip6_hdr);
 		else
-			continue;
+			continue; // why
 
 		t_packet *packet = (t_packet *)buffer;
 		if (g_scan.destination.family == AF_INET)
