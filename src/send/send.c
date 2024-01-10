@@ -8,14 +8,13 @@
 
 int create_socket()
 {
-	// use to receive response (it will saved every response) (need to be removed)
-	{
-		if ((g_scan.socket = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol)) == -1)
-			error(1, "socket: %s\n", strerror(errno));
-		if ((g_scan.socket_icmp = socket(g_scan.destination.family, SOCK_RAW, IPPROTO_ICMP)) == -1)
-			error(1, "socket: %s\n", strerror(errno));
-	}
+	// Sockets for receiving ICMP and TCP / UDP packets
+    if ((g_scan.socket = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol)) == -1)
+        error(1, "socket: %s\n", strerror(errno));
+    if ((g_scan.socket_icmp = socket(g_scan.destination.family, SOCK_RAW, IPPROTO_ICMP)) == -1)
+        error(1, "socket: %s\n", strerror(errno));
 
+    // Socket for sending TCP / UDP packets
 	int sock = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol);
 	if (sock == -1)
 		error(1, "socket: %s\n", strerror(errno));

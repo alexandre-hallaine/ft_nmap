@@ -4,7 +4,6 @@
 
 void print_result(t_technique technique)
 {
-    // needs some comments (not chatgpt :) )
 	unsigned short amount[(OPEN | CLOSED | FILTERED | UNFILTERED) + 1] = {0};
 	for (unsigned short index = g_scan.options.port_min; index <= g_scan.options.port_max; index++)
 		if (g_scan.status[technique][index] != UNSCANNED)

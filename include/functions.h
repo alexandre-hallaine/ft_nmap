@@ -12,12 +12,10 @@ void print_status_name(t_status status);
 t_addr get_interface(int family);
 t_addrinfo get_info(char *host);
 
-// flags.c
+// parser.c
 void usage(char *program);
 void parse_port_range(char *port_range);
 void parse_technique(char *technique);
-
-// parser.c
 void command_parser(int argc, char *argv[]);
 
 // packet.c
