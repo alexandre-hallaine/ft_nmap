@@ -1,29 +1,26 @@
 NAME	:= ft_nmap
-CFLAGS	:= -Wall -Wextra
+CFLAGS	:= -Wall -Wextra -Wunreachable-code
 # CFLAGS	+= -Werror
-# CFLAGS	:= -Ofast
 
 HEADERS	:= -I ./include
 LIBS	:= -lpcap -lpthread
-SRCDIR	:= ./src
-OBJDIR	:= ./obj
-SRCS	:= $(shell find $(SRCDIR) -type f -name "*.c")
-OBJS	:= $(SRCS:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+SRCS	:= $(shell find src -type f -name "*.c")
+OBJS	:= $(SRCS:src/%.c=obj/%.o)
 
 all: $(NAME)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+obj/%.o: src/%.c
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -o $@ -c $< $(HEADERS) && echo "Compiled: $(notdir $@)"
+	$(CC) $(CFLAGS) -o $@ -c $< $(HEADERS) && echo "Compiled: $(notdir $<)"
 
 $(NAME): $(OBJS)
 	$(CC) $(OBJS) $(LIBS) $(HEADERS) -o $(NAME) && echo "Linked: $(NAME)"
 
 clean:
-	rm -rf $(OBJDIR) && echo "Removed: $(OBJDIR)"
+	rm -rf $(OBJS) && echo "Removed: $(OBJS)"
 
 fclean: clean
-	rm -f $(NAME) && echo "Removed: $(NAME)"
+	rm -rf $(NAME) && echo "Removed: $(NAME)"
 
 re: clean all
 
