@@ -8,12 +8,6 @@
 
 int create_socket()
 {
-	// Sockets for receiving ICMP and TCP / UDP packets
-    if ((g_scan.socket = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol)) == -1)
-        error(1, "socket: %s\n", strerror(errno));
-    if ((g_scan.socket_icmp = socket(g_scan.destination.family, SOCK_RAW, IPPROTO_ICMP)) == -1)
-        error(1, "socket: %s\n", strerror(errno));
-
     // Socket for sending TCP / UDP packets
 	int sock = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol);
 	if (sock == -1)
@@ -42,6 +36,10 @@ void send_packet(t_technique technique)
 	printf("Sending packet... (technique: %s)\n", get_technique_name(technique));
 	for (unsigned short port = g_scan.options.port_min; port <= g_scan.options.port_max; port++)
 	{
+        g_scan.status[technique][port] = FILTERED;
+        if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
+            g_scan.status[technique][port] |= OPEN;
+
 		//calculate the checksum
 		unsigned short packet_size;
 		if (g_scan.destination.protocol == IPPROTO_TCP)
@@ -60,12 +58,6 @@ void send_packet(t_technique technique)
 
 		if (sendto(sock, &packet, packet_size, 0, &g_scan.destination.addr.addr, g_scan.destination.addrlen) == -1)
 			error(1, "sendto: %s\n", strerror(errno));
-
-		if (g_scan.status[technique][port] != UNSCANNED)
-			continue; // still think this is useless (need to double check, i think too)
-		g_scan.status[technique][port] = FILTERED; // why ?
-		if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
-			g_scan.status[technique][port] |= OPEN; // why ?
 	}
 	close(sock);
 }

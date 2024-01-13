@@ -137,6 +137,7 @@ void command_parser(int argc, char *argv[])
     // I feel like this should be done before the flags
 	if (index != argc - 1)
 		usage(argv[0]);
+    strcat(g_scan.filter, "src ");
 	g_scan.destination = get_info(argv[index]);
 	g_scan.interface = get_interface(g_scan.destination.family);
 }

@@ -61,6 +61,7 @@ t_addrinfo get_info(char *host)
 	else
 		error(1, "get_info: unknown address family\n");
 	printf("Using host %s with address %s\n", res->ai_canonname, ip);
+    strcat(g_scan.filter, ip);
 
 	t_addrinfo addr = {
 		.family = res->ai_family,

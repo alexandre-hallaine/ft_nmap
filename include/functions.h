@@ -31,6 +31,6 @@ void send_packet(t_technique technique);
 void print_result(t_technique technique);
 
 // receive.c
-void receive_packet(t_technique technique);
+void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned char *data);
 
 #endif

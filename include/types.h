@@ -7,6 +7,8 @@
 #include <netinet/ip_icmp.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <pcap/pcap.h>
 
 typedef struct
 {
@@ -65,7 +67,7 @@ typedef union
 {
 	struct tcphdr tcp;
 	struct udphdr udp;
-	struct icmphdr icmp;
+    struct icmphdr icmp;
 } t_packet;
 
 typedef enum
@@ -85,10 +87,8 @@ typedef struct
 	t_addrinfo destination;
 
 	t_status status[TECHNIQUE_COUNT][USHRT_MAX]; // status of each port
-
-	int socket;		 // used to saved every received packet
-	int socket_icmp; // used to save every received icmp packet
-	bool timeout;	 // true if the received have exceeded the timeout
+    char filter[BUFSIZ];
+    pcap_t *handle;
 } t_scan;
 
 extern t_scan g_scan;

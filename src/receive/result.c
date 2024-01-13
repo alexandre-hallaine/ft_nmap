@@ -4,7 +4,8 @@
 
 void print_result(t_technique technique)
 {
-	unsigned short amount[(OPEN | CLOSED | FILTERED | UNFILTERED) + 1] = {0};
+    printf("\nResults for technique: %s\n", get_technique_name(technique));
+    unsigned short amount[(OPEN | CLOSED | FILTERED | UNFILTERED) + 1] = {0};
 	for (unsigned short index = g_scan.options.port_min; index <= g_scan.options.port_max; index++)
 		if (g_scan.status[technique][index] != UNSCANNED)
 			amount[g_scan.status[technique][index]]++;

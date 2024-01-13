@@ -5,12 +5,12 @@ t_packet create_packet(t_technique technique)
 	t_packet packet = {0};
 	if (technique == UDP)
 	{
-		packet.udp.source = htons(4242);
+		packet.udp.source = htons(technique);
 		packet.udp.len = htons(sizeof(struct udphdr));
 		return packet;
 	}
 
-	packet.tcp.source = htons(4242); // we set the source port to 4242 to find easily the response in wire shark (and in pcap in the future)
+	packet.tcp.source = htons(technique);
 	packet.tcp.window = htons(1024); // i dont know why it is important (need to double check)
 	packet.tcp.doff = 5; // 5 * 32bits = 20bytes (the size of the header)
 
