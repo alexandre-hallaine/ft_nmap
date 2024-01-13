@@ -27,14 +27,14 @@ void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned 
     // Skip ethernet header
     data += 16;
 
-    int ip_size = g_scan.destination.family == AF_INET ? sizeof(struct iphdr) : sizeof(struct ip6_hdr);
+    int ip_size = g_scan.IPs->destination.family == AF_INET ? sizeof(struct iphdr) : sizeof(struct ip6_hdr);
     t_packet *packet = (t_packet *) (data + ip_size);
 
-    uint8_t protocol = g_scan.destination.family == AF_INET ? ((struct iphdr *) data)->protocol
+    uint8_t protocol = g_scan.IPs->destination.family == AF_INET ? ((struct iphdr *) data)->protocol
                                                             : ((struct ip6_hdr *) data)->ip6_nxt;
     if (protocol == IPPROTO_ICMP) {
         data += sizeof(struct icmphdr) + ip_size; //go to old packet
-        protocol = g_scan.destination.family == AF_INET ? ((struct iphdr *) data)->protocol
+        protocol = g_scan.IPs->destination.family == AF_INET ? ((struct iphdr *) data)->protocol
                                                         : ((struct ip6_hdr *) data)->ip6_nxt;
 
         t_packet *packet_old = (t_packet *) (data + ip_size);

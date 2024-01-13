@@ -7,6 +7,7 @@
 void error(int code, char *fmt, ...);
 char *get_technique_name(t_technique technique);
 void print_status_name(t_status status);
+void free_IPs();
 
 // address.c
 t_addr get_interface(int family);

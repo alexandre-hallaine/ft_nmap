@@ -23,6 +23,16 @@ void usage(char *program)
 	printf("\t\tU: UDP\n");
 	exit(1);
 }
+
+void parse_thread(char *thread)
+{
+    // Check if number plz
+	g_scan.options.thread_count = atoi(thread);
+
+    if (g_scan.options.thread_count > 250)
+        error(2, "usage: %s: threads execeeding 250\n", thread);
+}
+
 void parse_port_range(char *port_range)
 {
 	char *delimiter = strchr(port_range, '-');
@@ -99,6 +109,14 @@ void flag_parser(unsigned short *index, char *argv[])
 		// bool check here
 		break;
 
+    case 't':
+        (*index)++;
+        if (argv[*index] == NULL)
+            usage(argv[0]);
+
+        parse_thread(argv[*index]);
+        break;
+
 	default:
 		error(2, "usage: %s: invalid option\n", argv[*index]);
 	}
@@ -138,6 +156,8 @@ void command_parser(int argc, char *argv[])
 	if (index != argc - 1)
 		usage(argv[0]);
     strcat(g_scan.filter, "src ");
-	g_scan.destination = get_info(argv[index]);
-	g_scan.interface = get_interface(g_scan.destination.family);
+	// g_scan.IPs->destination = get_info(argv[index]);
+    // g_scan.IPs->next = NULL;
+    get_info(argv[index]);
+	g_scan.interface = get_interface(g_scan.IPs->destination.family);
 }

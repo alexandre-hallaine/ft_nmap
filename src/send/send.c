@@ -9,7 +9,7 @@
 int create_socket()
 {
     // Socket for sending TCP / UDP packets
-	int sock = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol);
+	int sock = socket(g_scan.IPs->destination.family, SOCK_RAW, g_scan.IPs->destination.protocol);
 	if (sock == -1)
 		error(1, "socket: %s\n", strerror(errno));
 
@@ -19,7 +19,7 @@ int create_socket()
 	// 	error(1, "setsockopt: %s\n", strerror(errno));
 
 	// need to double check why this is necessary
-	if (g_scan.destination.family == AF_INET)
+	if (g_scan.IPs->destination.family == AF_INET)
 		bind(sock, (struct sockaddr *)&g_scan.interface.in, sizeof(g_scan.interface.in));
 	else
 		bind(sock, (struct sockaddr *)&g_scan.interface.in6, sizeof(g_scan.interface.in6));
@@ -86,12 +86,12 @@ void send_packet_solo(t_technique technique, unsigned short small, unsigned shor
     // Set the protocol and the size of the packet
     if (technique == UDP)
     {
-        g_scan.destination.protocol = IPPROTO_UDP;
+        g_scan.IPs->destination.protocol = IPPROTO_UDP;
         packet_size = sizeof(struct udphdr);
     }
     else
     {
-        g_scan.destination.protocol = IPPROTO_TCP;
+        g_scan.IPs->destination.protocol = IPPROTO_TCP;
         packet_size = sizeof(struct tcphdr);
     }
 
@@ -109,7 +109,7 @@ void send_packet_solo(t_technique technique, unsigned short small, unsigned shor
             g_scan.status[technique][port] |= OPEN;
 
         // Set the destination port of the packet and calculate the checksum
-        if (g_scan.destination.protocol == IPPROTO_TCP)
+        if (g_scan.IPs->destination.protocol == IPPROTO_TCP)
         {
             packet.tcp.dest = htons(port);
             packet.tcp.check = 0;
@@ -119,10 +119,10 @@ void send_packet_solo(t_technique technique, unsigned short small, unsigned shor
             packet.udp.dest = htons(port);
             packet.udp.check = 0;
         }
-        calculate_checksum(g_scan.destination.protocol, &packet, packet_size);
+        calculate_checksum(g_scan.IPs->destination.protocol, &packet, packet_size);
 
         // Send the packet
-        if (sendto(sock, &packet, packet_size, 0, &g_scan.destination.addr.addr, g_scan.destination.addrlen) == -1)
+        if (sendto(sock, &packet, packet_size, 0, &g_scan.IPs->destination.addr.addr, g_scan.IPs->destination.addrlen) == -1)
             error(1, "sendto: %s\n", strerror(errno));
     }
 

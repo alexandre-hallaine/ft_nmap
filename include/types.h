@@ -57,10 +57,17 @@ typedef enum
 
 typedef struct
 {
+    t_addrinfo destination;
+    void *next;
+} t_IP;
+
+typedef struct
+{
     bool techniques[TECHNIQUE_COUNT];
 
     unsigned short port_min;
     unsigned short port_max;
+    unsigned short thread_count;
 } t_options;
 
 typedef union
@@ -84,7 +91,7 @@ typedef struct
 {
     t_options options;
     t_addr interface;
-    t_addrinfo destination;
+    t_IP *IPs;
 
     t_status status[TECHNIQUE_COUNT][USHRT_MAX]; // status of each port
     char filter[BUFSIZ];

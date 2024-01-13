@@ -41,4 +41,5 @@ int main(int argc, char *argv[])
     pcap_close(g_scan.handle);
 
     print_result();
+    free_IPs();
 }

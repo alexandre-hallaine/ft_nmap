@@ -25,16 +25,16 @@ unsigned short checksum(unsigned short *addr, size_t len)
 
 void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size)
 {
-    unsigned char ip_size = g_scan.destination.family == AF_INET ? sizeof(t_ipv4_pseudo_header) : sizeof(t_ipv6_pseudo_header);
+    unsigned char ip_size = g_scan.IPs->destination.family == AF_INET ? sizeof(t_ipv4_pseudo_header) : sizeof(t_ipv6_pseudo_header);
     char buffer[ip_size + packet_size];
 
     // Create the pseudo header of IPv4 or IPv6 and copy it to the start of the buffer
-    if (g_scan.destination.family == AF_INET)
+    if (g_scan.IPs->destination.family == AF_INET)
     {
         t_ipv4_pseudo_header pseudo_header = 
         {
             .source_address = g_scan.interface.in.sin_addr.s_addr,
-            .destination_address = g_scan.destination.addr.in.sin_addr.s_addr,
+            .destination_address = g_scan.IPs->destination.addr.in.sin_addr.s_addr,
             .protocol = protocol,
             .length = htons(packet_size)
         };
@@ -51,7 +51,7 @@ void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short pack
 
         // We need to copy the address byte by byte because it is an array
         memcpy(pseudo_header.source_address, &g_scan.interface.in6.sin6_addr, sizeof(pseudo_header.source_address));
-        memcpy(pseudo_header.destination_address, &g_scan.destination.addr.in6.sin6_addr, sizeof(pseudo_header.destination_address));
+        memcpy(pseudo_header.destination_address, &g_scan.IPs->destination.addr.in6.sin6_addr, sizeof(pseudo_header.destination_address));
 
         memcpy(buffer, &pseudo_header, ip_size);
     }
