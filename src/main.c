@@ -11,23 +11,21 @@ void timeout(int)
 
 int main(int argc, char *argv[])
 {
-	command_parser(argc, argv);
+    command_parser(argc, argv);
 
-    g_scan.handle = pcap_open_live(NULL, BUFSIZ, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL);
+    g_scan.handle = pcap_open_live(NULL, BUFSIZ * 8, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL);
     struct bpf_program fp;
     pcap_compile(g_scan.handle, &fp, g_scan.filter, 1, PCAP_NETMASK_UNKNOWN);
     pcap_setfilter(g_scan.handle, &fp);
 
-	for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-		if (g_scan.options.techniques[i])
-			send_packet(i);
+    for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
+        if (g_scan.options.techniques[i])
+            send_packet(i);
 
     signal(SIGALRM, timeout);
     alarm(3);
     pcap_dispatch(g_scan.handle, -1, packet_handler, NULL);
     pcap_close(g_scan.handle);
 
-    for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-        if (g_scan.options.techniques[i])
-            print_result(i);
+    print_result();
 }
