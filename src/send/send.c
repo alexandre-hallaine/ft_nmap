@@ -6,6 +6,26 @@
 #include <stdio.h>
 #include <unistd.h>
 
+int create_socket()
+{
+    // Socket for sending TCP / UDP packets
+	int sock = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol);
+	if (sock == -1)
+		error(1, "socket: %s\n", strerror(errno));
+
+	// need to remove the setsockopt to make docker work (error: Operation not permitted)
+	int optval = 1024 * 1024; // set buffer size to 1MB to avoid 'No buffer space available'
+	if (setsockopt(sock, SOL_SOCKET, SO_SNDBUFFORCE, &optval, sizeof(optval)) == -1)
+		error(1, "setsockopt: %s\n", strerror(errno));
+
+	// need to double check why this is necessary
+	if (g_scan.destination.family == AF_INET)
+		bind(sock, (struct sockaddr *)&g_scan.interface.in, sizeof(g_scan.interface.in));
+	else
+		bind(sock, (struct sockaddr *)&g_scan.interface.in6, sizeof(g_scan.interface.in6));
+	return sock;
+}
+
 void send_packet(t_technique technique)
 {
     // Create a packet containing the header of the protocol we want to use (TCP or UDP)
@@ -25,13 +45,7 @@ void send_packet(t_technique technique)
     }
 
     // Create a raw socket for sending the packet
-    int sock = socket(g_scan.destination.family, SOCK_RAW, g_scan.destination.protocol);
-    if (sock == -1)
-        error(1, "socket: %s\n", strerror(errno));
-
-    // int optval = 1024 * 1024; // set buffer size to 1MB to avoid 'No buffer space available'
-	// if (setsockopt(sock, SOL_SOCKET, SO_SNDBUFFORCE, &optval, sizeof(optval)) == -1)
-	// 	error(1, "setsockopt: %s\n", strerror(errno));
+    int sock = create_socket();
 
     printf("Sending packet... (technique: %s)\n", get_technique_name(technique));
 
