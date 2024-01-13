@@ -61,12 +61,15 @@ typedef struct
     void *next;
 } t_IP;
 
+typedef struct {
+    unsigned short min;
+    unsigned short max;
+} t_range;
+
 typedef struct
 {
     bool techniques[TECHNIQUE_COUNT];
-
-    unsigned short port_min;
-    unsigned short port_max;
+    t_range port_range;
     unsigned short thread_count;
 } t_options;
 

@@ -61,3 +61,9 @@ void print_status_name(t_status status)
         printf("UNFILTERED ");
     printf("\n");
 }
+
+int _ceil(float num) {
+    if (num < 0)
+        return (int)num;
+    return (int)num + 1;
+}

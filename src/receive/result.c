@@ -12,7 +12,7 @@ void print_result()
 
             printf("\nResults for technique: %s\n", get_technique_name(technique));
             // Calculate how many times each status appears for this technique
-            for (unsigned short index = g_scan.options.port_min; index <= g_scan.options.port_max; index++)
+            for (unsigned short index = g_scan.options.port_range.min; index <= g_scan.options.port_range.max; index++)
                 amount[g_scan.status[technique][index]]++;
 
             // Ignore the status that appears the most
@@ -23,12 +23,12 @@ void print_result()
             print_status_name(default_status);
 
             // Don't print anything if all the ports are on the same state
-            if (amount[default_status] == g_scan.options.port_max - g_scan.options.port_min + 1)
+            if (amount[default_status] == g_scan.options.port_range.max - g_scan.options.port_range.min + 1)
                 continue;
 
             printf("PORT\tSTATE\n");
             // Print the ports that are not on the default state
-            for (unsigned short index = g_scan.options.port_min; index <= g_scan.options.port_max; index++)
+            for (unsigned short index = g_scan.options.port_range.min; index <= g_scan.options.port_range.max; index++)
                 if (g_scan.status[technique][index] != default_status)
                 {
                     printf("%d\t", index);

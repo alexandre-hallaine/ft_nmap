@@ -8,6 +8,7 @@ void error(int code, char *fmt, ...);
 char *get_technique_name(t_technique technique);
 void print_status_name(t_status status);
 void free_IPs();
+int _ceil(float num);
 
 // address.c
 t_addr get_interface(int family);
@@ -26,8 +27,7 @@ t_packet create_packet(t_technique technique);
 void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size);
 
 // send.c
-void send_packet(t_technique technique);
-void send_packet_solo(t_technique technique, unsigned short small, unsigned short big);
+void thread_send();
 
 // result.c
 void print_result();

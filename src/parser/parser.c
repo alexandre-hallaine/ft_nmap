@@ -40,15 +40,15 @@ void parse_port_range(char *port_range)
 		error(2, "usage: %s: invalid port range\n", port_range);
 
     // Check if number plz
-	g_scan.options.port_min = atoi(port_range);
-	g_scan.options.port_max = atoi(delimiter + 1);
+	g_scan.options.port_range.min = atoi(port_range);
+	g_scan.options.port_range.max = atoi(delimiter + 1);
 
 	// make error messages more accurate
-    if (g_scan.options.port_min <= 0 || g_scan.options.port_max <= 0) // can't be 0 or negative	(negative check unnecessary if properly isnumber before)
+    if (g_scan.options.port_range.min <= 0 || g_scan.options.port_range.max <= 0) // can't be 0 or negative	(negative check unnecessary if properly isnumber before)
         error(2, "usage: %s: invalid port range\n", port_range);
-	else if (g_scan.options.port_min >= g_scan.options.port_max) // min must be smaller than max
+	else if (g_scan.options.port_range.min >= g_scan.options.port_range.max) // min must be smaller than max
 		error(2, "usage: %s: invalid port range\n", port_range);
-    else if (g_scan.options.port_max - g_scan.options.port_min + 1 > 1024) // max - min + 1 must be smaller than 1024 (subject)
+    else if (g_scan.options.port_range.max - g_scan.options.port_range.min + 1 > 1024) // max - min + 1 must be smaller than 1024 (subject)
         error(2, "usage: %s: port range exceeding 1024\n", port_range);
 }
 
@@ -128,8 +128,8 @@ void command_parser(int argc, char *argv[])
 	if (getuid() != 0)
 		error(1, "usage: You need to be root to run this program\n"); // move to main
 
-	g_scan.options.port_min = 1;
-	g_scan.options.port_max = 1024; // change with define
+	g_scan.options.port_range.min = 1;
+	g_scan.options.port_range.max = 1024; // change with define
 
 	unsigned short index = 1; // for loop is better ?
 	while (index < argc && argv[index][0] == '-')
