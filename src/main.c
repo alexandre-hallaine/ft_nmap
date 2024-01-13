@@ -19,8 +19,10 @@ int main(int argc, char *argv[])
     pcap_setfilter(g_scan.handle, &fp);
 
     for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-        if (g_scan.options.techniques[i])
+        if (g_scan.options.techniques[i]) {
             send_packet(i);
+	    sleep(1);
+	}
 
     signal(SIGALRM, timeout);
     alarm(3);
