@@ -26,6 +26,7 @@ void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short pack
 
 // send.c
 void send_packet(t_technique technique);
+void send_packet_solo(t_technique technique, unsigned short small, unsigned short big);
 
 // result.c
 void print_result();
