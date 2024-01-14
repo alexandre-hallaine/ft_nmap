@@ -1,6 +1,7 @@
 #include "functions.h"
 #include <signal.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 t_scan g_scan = {0};
 
@@ -21,6 +22,17 @@ int main(int argc, char *argv[])
 
     if (g_scan.options.thread_count > 1)
         thread_send();
+    else for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
+        if (g_scan.options.techniques[technique])
+        {
+            t_options *options = malloc(sizeof(t_options));
+            for (int i = 0; i < 4; i++)
+                options->techniques[i] = false;
+            options->techniques[technique] = true;
+            options->port_range = g_scan.options.port_range;
+            routine(options);
+            sleep(1);
+        }
 
     signal(SIGALRM, timeout);
     g_scan.stop = false;

@@ -152,7 +152,7 @@ void command_parser(int argc, char *argv[])
             techniques = TECHNIQUE_COUNT;
         }
 
-        if (g_scan.options.thread_count < techniques) {
+        if (g_scan.options.thread_count != 0 && g_scan.options.thread_count < techniques) {
             g_scan.options.thread_count = techniques;
             printf("Warning: too less threads, using %d instead\n", techniques);
         }
@@ -164,6 +164,6 @@ void command_parser(int argc, char *argv[])
     strcat(g_scan.filter, "src ");
 	// g_scan.IPs->destination = get_info(argv[index]);
     // g_scan.IPs->next = NULL;
-    get_info(argv[index]);
+    add_IP(get_info(argv[index]));
 	g_scan.interface = get_interface(g_scan.IPs->destination.family);
 }

@@ -46,26 +46,6 @@ t_addr get_interface(int family)
     return addr;
 }
 
-void add_to_list(t_addrinfo addr) {
-    t_IP *head = g_scan.IPs;
-    t_IP *new_node = NULL;
-
-    for (; head && head->next; head = head->next);
-    new_node = malloc(sizeof(t_IP));
-
-    if (!new_node) {
-        error(1, "add_to_list: malloc failed\n");
-    }
-
-    new_node->destination = addr;
-    new_node->next = NULL;
-
-    if (!g_scan.IPs)
-        g_scan.IPs = new_node;
-    else
-        head->next = new_node;
-}
-
 t_addrinfo get_info(char *host)
 {
     // getting the address info of the host with the canonname (the name of the host eg: google.com)
@@ -91,7 +71,5 @@ t_addrinfo get_info(char *host)
     // copying the address bytes to avoid losing information
     memcpy(&addr.addr, res->ai_addr, res->ai_addrlen);
     freeaddrinfo(res);
-
-    add_to_list(addr);
     return addr;
 }

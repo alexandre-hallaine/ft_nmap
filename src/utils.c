@@ -27,6 +27,26 @@ void error(int code, char *fmt, ...)
     exit(code);
 }
 
+void add_IP(t_addrinfo addr) {
+    t_IP *head = g_scan.IPs;
+    t_IP *new_node = NULL;
+
+    for (; head && head->next; head = head->next);
+    new_node = malloc(sizeof(t_IP));
+
+    if (!new_node) {
+        error(1, "add_to_list: malloc failed\n");
+    }
+
+    new_node->destination = addr;
+    new_node->next = NULL;
+
+    if (!g_scan.IPs)
+        g_scan.IPs = new_node;
+    else
+        head->next = new_node;
+}
+
 char *get_technique_name(t_technique technique)
 {
     switch (technique)
@@ -51,6 +71,8 @@ char *get_technique_name(t_technique technique)
 
 void print_status_name(t_status status)
 {
+    if (status == UNSCANNED)
+        printf("UNSCANNED ");
     if (status & OPEN)
         printf("OPEN ");
     if (status & CLOSED)
