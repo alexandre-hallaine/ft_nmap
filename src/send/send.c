@@ -36,7 +36,7 @@ void *routine(void *arg)
         if (options->techniques[technique])
             break;
 
-    printf("Sending packet... (technique: %s), (port: %d - %d)\n", get_technique_name(technique), options->port_range.min, options->port_range.max);
+    //printf("Sending packet... (technique: %s), (port: %d - %d)\n", get_technique_name(technique), options->port_range.min, options->port_range.max);
 
     // Create a packet containing the header of the protocol we want to use (TCP or UDP)
     t_packet packet = create_packet(technique);
@@ -118,7 +118,7 @@ void thread_send() {
             int threads[chunks[technique]];
             dispatch(g_scan.options.port_range.max - g_scan.options.port_range.min + 1, threads, (t_range){0, chunks[technique]}, NULL);
 
-            int last = 0;
+            int last = g_scan.options.port_range.min;
             for (int thread_no = 0; thread_no < chunks[technique]; thread_no++) {
                 t_options *range = malloc(sizeof(t_options));
 

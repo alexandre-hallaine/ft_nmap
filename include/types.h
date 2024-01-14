@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include <pcap/pcap.h>
 
+#define PORT_MIN 1
+#define PORT_MAX 1024
+
 typedef struct
 {
     u_int32_t source_address;
@@ -80,6 +83,7 @@ typedef struct {
 typedef struct
 {
     bool techniques[TECHNIQUE_COUNT];
+    int techniques_count;
     t_range port_range;
     unsigned short thread_count;
 } t_options;

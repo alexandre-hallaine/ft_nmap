@@ -8,22 +8,21 @@
 
 void usage(char *program)
 {
-	printf("usage: %s [options] <host>\n", program);
+    printf("usage: %s [options] <host>\n"
+        "options:\n"
+        "\t-h:\t\t\tdisplay this help\n"
+        "\t-f <file>:\t\tscan the specified file\n"
+        "\t-t <threads>:\t\tscan with specified threads (default: 0)\n"
+        "\t-p <port min>-<port max>:\tscan the specified port range (default: 1-1024)\n"
+        "\t-s <techniques>:\t\tscan with specified techniques (eg: '-s AS' for ACK and SYN)\n"
+        "\t\tA: ACK\n"
+        "\t\tS: SYN\n"
+        "\t\tF: FIN\n"
+        "\t\tN: NUL\n"
+        "\t\tX: XMAS\n"
+        "\t\tU: UDP\n", program);
 
-    // should buffer this
-	printf("options:\n");
-	printf("\t-h:\t\t\tdisplay this help\n");
-    printf("\t-f <file>:\t\tscan the specified file\n");
-    printf("\t-t <threads>:\t\tscan with specified threads (default: 0)\n");
-	printf("\t-p <port min>-<port max>:\tscan the specified port range (default: 1-1024)\n");
-	printf("\t-s <techniques>:\t\tscan with specified techniques (eg: '-s AS' for ACK and SYN)\n");
-	printf("\t\tA: ACK\n");
-	printf("\t\tS: SYN\n");
-	printf("\t\tF: FIN\n");
-	printf("\t\tN: NUL\n");
-	printf("\t\tX: XMAS\n");
-	printf("\t\tU: UDP\n");
-	exit(1);
+	error(1, NULL);
 }
 
 void parse_thread(char *thread)
@@ -37,7 +36,7 @@ void parse_thread(char *thread)
         error(2, "usage: %s: threads must be a number greater than 0\n", thread);
 }
 
-void parse_port_range(char *port_range)
+void parse_port_range(char *port_range) // need to change and send
 {
 	char *delimiter = strchr(port_range, '-');
 	if (delimiter == NULL)
@@ -59,6 +58,9 @@ void parse_port_range(char *port_range)
 void parse_technique(char *technique)
 {
 	for (unsigned char i = 0; i < strlen(technique); i++)
+    {
+        g_scan.options.techniques_count++;
+
 		switch (technique[i])
 		{
 		case 'A':
@@ -82,6 +84,7 @@ void parse_technique(char *technique)
 		default:
 			error(2, "usage: %c: unknown technique\n", technique[i]);
 		}
+    }
 }
 
 void parse_file(char *file)
@@ -90,13 +93,19 @@ void parse_file(char *file)
     if (fp == NULL)
         error(2, "usage: %s: file not found\n", file);
 
-    char line[1024] = {0};
-    while (fgets(line, sizeof(line), fp) != NULL)
+    // Domain names can be up to 253 characters in length hence the UCHAR_MAX
+    char line[UCHAR_MAX] = {0};
+
+    while (fgets(line, sizeof(line), fp) != NULL) // switch to GNL
     {
         char *newline = strchr(line, '\n');
-        if (newline != NULL)
+        // No point in continuing if the line is too long since it will not be a valid domain name or IP
+        if (newline == NULL)
+            line[sizeof(line) - 1] = '\0';
+        else
             *newline = '\0';
 
+        // Add the IP to the list
         add_IP(get_info(line));
     }
 
@@ -105,98 +114,79 @@ void parse_file(char *file)
 
 void flag_parser(unsigned short *index, char *argv[])
 {
-	// may need to be modified when more options are added
-	if (argv[*index][2] != '\0') // use -h instead of -help
-		error(2, "usage: %s: invalid option\n", argv[*index]);
+    char flag = argv[*index][1];
+    char flags[] = "psft";
 
-	switch (argv[*index][1]) // repeated code perhaps we can figure out a way to make this more efficient (make shit fall into h ?)
-	{
-	case 'h':
-		usage(argv[0]);
-		break;
+    if (flag == 'h')
+        usage(argv[0]);
 
-	case 'p':
-		(*index)++;
-		if (argv[*index] == NULL)
-			usage(argv[0]);
+    if (flag && strchr(flags, flag) == NULL)
+        error(2, "usage: %s: invalid option\n", argv[*index]);
 
-		parse_port_range(argv[*index]);
-		break;
+    (*index)++;
+    if (argv[*index] == NULL)
+        usage(argv[0]);
+    else
+        switch (flag)
+        {
+        case 'p':
+            parse_port_range(argv[*index]);
+            break;
 
-	case 's':
-		(*index)++;
-		if (argv[*index] == NULL)
-			usage(argv[0]);
+        case 's':
+            parse_technique(argv[*index]);
+            break;
 
-		parse_technique(argv[*index]);
-		// bool check here
-		break;
+        case 'f':
+            parse_file(argv[*index]);
+            break;
 
-    case 't':
-        (*index)++;
-        if (argv[*index] == NULL)
-            usage(argv[0]);
-
-        parse_thread(argv[*index]);
-        break;
-
-    case 'f':
-        (*index)++;
-        if (argv[*index] == NULL)
-            usage(argv[0]);
-
-        parse_file(argv[*index]);
-        break;
-
-
-	default:
-		error(2, "usage: %s: invalid option\n", argv[*index]);
-	}
+        case 't':
+            parse_thread(argv[*index]);
+            break;
+        }
 }
 
-// naming
-void command_parser(int argc, char *argv[])
+void init(int argc, char *argv[])
 {
+    // Exit if not root
 	if (getuid() != 0)
-		error(1, "usage: You need to be root to run this program\n"); // move to main
+		error(1, "usage: You need to be root to run this program\n");
 
-	g_scan.options.port_range.min = 1;
-	g_scan.options.port_range.max = 1024; // change with define
+    // Parse flags
+    unsigned short index;
+    for (index = 1; index < argc && argv[index][0] == '-'; index++)
+        flag_parser(&index, argv);
 
-	unsigned short index = 1; // for loop is better ?
-	while (index < argc && argv[index][0] == '-')
-	{
-		flag_parser(&index, argv);
-		index++;
-	}
+    // If no techniques specified, scan all
+    if (g_scan.options.techniques_count == 0)
+    {
+        memset(g_scan.options.techniques, true, TECHNIQUE_COUNT);
+        g_scan.options.techniques_count = TECHNIQUE_COUNT;
+    }
 
-	// if no technique is specified, scan with all of them
-    // remove block
-	{
-        int techniques = 0;
-        for (int i = 0; i < TECHNIQUE_COUNT; i++)
-            if (g_scan.options.techniques[i])
-                techniques++;
+    // If no port range specified, scan 1-1024
+    if (g_scan.options.port_range.max == 0)
+    {
+        g_scan.options.port_range.min = 1;
+        g_scan.options.port_range.max = 1024;
+    }
 
-        if (techniques == 0)
-        {
-            memset(g_scan.options.techniques, true, TECHNIQUE_COUNT);
-            techniques = TECHNIQUE_COUNT;
-        }
+    // If the amount of threads is less than the amount of techniques, use the amount of techniques
+    // We do this because we assume at least one thread per technique (if threads are used)
+    if (g_scan.options.thread_count != 0 && g_scan.options.thread_count < g_scan.options.techniques_count) {
+        g_scan.options.thread_count = g_scan.options.techniques_count;
+        printf("Warning: Not enough threads, using %d instead\n", g_scan.options.techniques_count);
+    }
 
-        if (g_scan.options.thread_count != 0 && g_scan.options.thread_count < techniques) {
-            g_scan.options.thread_count = techniques;
-            printf("Warning: too less threads, using %d instead\n", techniques);
-        }
-	}
-
-    // I feel like this should be done before the flags
+    // If -f is not specified, the last argument is the host
     if (g_scan.IPs == NULL)
     {
-        if (g_scan.IPs == NULL && index != argc - 1)
+        if (index != argc - 1)
             usage(argv[0]);
         add_IP(get_info(argv[index]));
     }
 
+    // Get interface
     g_scan.interface = get_interface(g_scan.family);
 }

@@ -16,7 +16,7 @@ t_addr get_interface(int family);
 t_addrinfo get_info(char *host);
 
 // parser.c
-void command_parser(int argc, char *argv[]);
+void init(int argc, char *argv[]);
 
 // packet.c
 t_packet create_packet(t_technique technique);
