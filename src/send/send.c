@@ -15,10 +15,10 @@ int create_socket(int protocol)
 	if (sock == -1)
 		error(1, "socket: %s\n", strerror(errno));
 
-	// need to remove the setsockopt to make docker work (error: Operation not permitted)
-	// int optval = 1024 * 1024; // set buffer size to 1MB to avoid 'No buffer space available'
-	// if (setsockopt(sock, SOL_SOCKET, SO_SNDBUFFORCE, &optval, sizeof(optval)) == -1)
-	// 	error(1, "setsockopt: %s\n", strerror(errno));
+     // set buffer size to 1MB to avoid 'No buffer space available'
+	int optval = 1024 * 1024;
+	if (setsockopt(sock, SOL_SOCKET, SO_SNDBUFFORCE, &optval, sizeof(optval)) == -1)
+		error(1, "setsockopt: %s\n", strerror(errno));
 
     // Bind the socket to the interface
 	if (g_scan.family == AF_INET)

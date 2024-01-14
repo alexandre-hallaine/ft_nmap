@@ -26,7 +26,7 @@ re: clean all
 
 docker:
 	docker build -t ft_nmap .
-	docker run -itv $(CURDIR):/app ft_nmap
+	docker run --privileged -itv $(CURDIR):/app ft_nmap
 
 .PHONY: all, clean, fclean, re, docker
 .SILENT:
