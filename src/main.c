@@ -21,6 +21,9 @@ int main(int argc, char *argv[])
     pcap_compile(g_scan.handle, &fp, g_scan.filter, 1, PCAP_NETMASK_UNKNOWN);
     pcap_setfilter(g_scan.handle, &fp);
 
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
     printf("Starting scan...\n");
     if (g_scan.options.thread_count > 1)
         thread_send();
@@ -49,6 +52,11 @@ int main(int argc, char *argv[])
         alarm(2);
         pcap_dispatch(g_scan.handle, -1, packet_handler, NULL);
     }
+
+    struct timeval tv2;
+    gettimeofday(&tv2, NULL);
+    double time = (tv2.tv_sec - tv.tv_sec) + (tv2.tv_usec - tv.tv_usec) / 1000000.0;
+    printf("Scan finished in %.2f seconds\n", time);
 
     pcap_close(g_scan.handle);
     print_result();
