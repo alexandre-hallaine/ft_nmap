@@ -89,25 +89,14 @@ void parse_technique(char *technique)
 
 void parse_file(char *file)
 {
+    char *line;
     FILE *fp = fopen(file, "r");
     if (fp == NULL)
         error(2, "usage: %s: file not found\n", file);
 
-    // Domain names can be up to 253 characters in length hence the UCHAR_MAX
-    char line[UCHAR_MAX] = {0};
-
-    while (fgets(line, sizeof(line), fp) != NULL) // switch to GNL
-    {
-        char *newline = strchr(line, '\n');
-        // No point in continuing if the line is too long since it will not be a valid domain name or IP
-        if (newline == NULL)
-            line[sizeof(line) - 1] = '\0';
-        else
-            *newline = '\0';
-
-        // Add the IP to the list
+    // Read file line by line and add IP to list
+    while (get_next_line(fp->_fileno, &line) > 0)
         add_IP(get_info(line));
-    }
 
     fclose(fp);
 }

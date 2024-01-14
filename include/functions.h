@@ -11,6 +11,9 @@ void add_IP(t_addrinfo addr);
 void free_IPs();
 int _ceil(float num);
 
+// gnl.c
+int get_next_line(int fd, char **line);
+
 // address.c
 t_addr get_interface(int family);
 t_addrinfo get_info(char *host);

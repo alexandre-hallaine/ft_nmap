@@ -15,6 +15,12 @@
 #define PORT_MIN 1
 #define PORT_MAX 1024
 
+typedef	struct
+{
+    char let;
+    void *next;
+} t_gnl;
+
 typedef struct
 {
     u_int32_t source_address;
