@@ -141,15 +141,21 @@ void command_parser(int argc, char *argv[])
 	// if no technique is specified, scan with all of them
     // remove block
 	{
-		bool technique_specified = false; // can't this be checked within flag_parser ?
-		for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-			if (g_scan.options.techniques[i])
-				technique_specified = true; // why not just break here ?
+        int techniques = 0;
+        for (int i = 0; i < TECHNIQUE_COUNT; i++)
+            if (g_scan.options.techniques[i])
+                techniques++;
 
-		if (!technique_specified)
-			for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-				g_scan.options.techniques[i] = true;
-            //  memset(g_scan.options.techniques, true, TECHNIQUE_COUNT); imo this is better
+        if (techniques == 0)
+        {
+            memset(g_scan.options.techniques, true, TECHNIQUE_COUNT);
+            techniques = TECHNIQUE_COUNT;
+        }
+
+        if (g_scan.options.thread_count < techniques) {
+            g_scan.options.thread_count = techniques;
+            printf("Warning: too less threads, using %d instead\n", techniques);
+        }
 	}
 
     // I feel like this should be done before the flags

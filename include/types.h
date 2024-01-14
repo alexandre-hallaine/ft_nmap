@@ -39,7 +39,6 @@ typedef union
 typedef struct
 {
     int family;
-    int protocol;
     t_addr addr;
     socklen_t addrlen;
 } t_addrinfo;
@@ -99,6 +98,7 @@ typedef struct
     t_status status[TECHNIQUE_COUNT][USHRT_MAX]; // status of each port
     char filter[BUFSIZ];
     pcap_t *handle;
+    bool stop;
 } t_scan;
 
 extern t_scan g_scan;

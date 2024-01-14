@@ -8,10 +8,10 @@
 #include <malloc.h>
 #include <pthread.h>
 
-int create_socket()
+int create_socket(int protocol)
 {
     // Socket for sending TCP / UDP packets
-	int sock = socket(g_scan.IPs->destination.family, SOCK_RAW, g_scan.IPs->destination.protocol);
+	int sock = socket(g_scan.IPs->destination.family, SOCK_RAW, protocol);
 	if (sock == -1)
 		error(1, "socket: %s\n", strerror(errno));
 
@@ -28,160 +28,110 @@ int create_socket()
 	return sock;
 }
 
-//void send_packet_solo(t_technique technique, unsigned short small, unsigned short big)
-//{
-//    // Create a packet containing the header of the protocol we want to use (TCP or UDP)
-//    t_packet packet = create_packet(technique);
-//    unsigned short packet_size;
-//
-//    // Set the protocol and the size of the packet
-//    if (technique == UDP)
-//    {
-//        g_scan.IPs->destination.protocol = IPPROTO_UDP;
-//        packet_size = sizeof(struct udphdr);
-//    }
-//    else
-//    {
-//        g_scan.IPs->destination.protocol = IPPROTO_TCP;
-//        packet_size = sizeof(struct tcphdr);
-//    }
-//
-//    // Create a raw socket for sending the packet
-//    int sock = create_socket();
-//
-//    // printf("Sending packet... (technique: %s)\n", get_technique_name(technique));
-//
-//    for (unsigned short port = small; port <= big; port++)
-//    {
-//        // printf("Sending packet... (technique: %s), (port: %d)\n", get_technique_name(technique), port);
-//        // Set a default status for the port
-//        g_scan.status[technique][port] = FILTERED;
-//        if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
-//            g_scan.status[technique][port] |= OPEN;
-//
-//        // Set the destination port of the packet and calculate the checksum
-//        if (g_scan.IPs->destination.protocol == IPPROTO_TCP)
-//        {
-//            packet.tcp.dest = htons(port);
-//            packet.tcp.check = 0;
-//        }
-//        else
-//        {
-//            packet.udp.dest = htons(port);
-//            packet.udp.check = 0;
-//        }
-//        calculate_checksum(g_scan.IPs->destination.protocol, &packet, packet_size);
-//
-//        // Send the packet
-//        if (sendto(sock, &packet, packet_size, 0, &g_scan.IPs->destination.addr.addr, g_scan.IPs->destination.addrlen) == -1)
-//            error(1, "sendto: %s\n", strerror(errno));
-//    }
-//
-//    close(sock);
-//}
-
 void *routine(void *arg)
 {
-    t_range *range = arg;
+    t_options *options = arg;
+    t_technique technique;
+    for (technique = 0; technique < TECHNIQUE_COUNT; technique++)
+        if (options->techniques[technique])
+            break;
+
+    printf("Sending packet... (technique: %s), (port: %d - %d)\n", get_technique_name(technique), options->port_range.min, options->port_range.max);
+
+    // Create a packet containing the header of the protocol we want to use (TCP or UDP)
+    t_packet packet = create_packet(technique);
+    unsigned short packet_size;
+    int protocol;
+
+    // Set the protocol and the size of the packet
+    if (technique == UDP)
+    {
+        protocol = IPPROTO_UDP;
+        packet_size = sizeof(struct udphdr);
+    }
+    else
+    {
+        protocol = IPPROTO_TCP;
+        packet_size = sizeof(struct tcphdr);
+    }
+
     // Create a raw socket for sending the packet
-    int sock = create_socket();
+    int sock = create_socket(protocol);
 
-    for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
-        if (g_scan.options.techniques[technique])
+    for (unsigned short port = options->port_range.min; port <= options->port_range.max; port++)
+    {
+        // Set a default status for the port
+        g_scan.status[technique][port] = FILTERED;
+        if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
+            g_scan.status[technique][port] |= OPEN;
+
+        // Set the destination port of the packet and calculate the checksum
+        if (protocol == IPPROTO_TCP)
         {
-            // Create a packet containing the header of the protocol we want to use (TCP or UDP)
-            t_packet packet = create_packet(technique);
-            unsigned short packet_size;
-
-            // Set the protocol and the size of the packet
-            if (technique == UDP)
-            {
-                g_scan.IPs->destination.protocol = IPPROTO_UDP;
-                packet_size = sizeof(struct udphdr);
-            }
-            else
-            {
-                g_scan.IPs->destination.protocol = IPPROTO_TCP;
-                packet_size = sizeof(struct tcphdr);
-            }
-
-            for (unsigned short port = range->min; port <= range->max; port++)
-            {
-                // Set a default status for the port
-                g_scan.status[technique][port] = FILTERED;
-                if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
-                    g_scan.status[technique][port] |= OPEN;
-
-                // Set the destination port of the packet and calculate the checksum
-                if (g_scan.IPs->destination.protocol == IPPROTO_TCP)
-                {
-                    packet.tcp.dest = htons(port);
-                    packet.tcp.check = 0;
-                }
-                else
-                {
-                    packet.udp.dest = htons(port);
-                    packet.udp.check = 0;
-                }
-                calculate_checksum(g_scan.IPs->destination.protocol, &packet, packet_size);
-
-                // Send the packet
-                if (sendto(sock, &packet, packet_size, 0, &g_scan.IPs->destination.addr.addr, g_scan.IPs->destination.addrlen) == -1)
-                    error(1, "sendto: %s\n", strerror(errno));
-            }
+            packet.tcp.dest = htons(port);
+            packet.tcp.check = 0;
         }
+        else
+        {
+            packet.udp.dest = htons(port);
+            packet.udp.check = 0;
+        }
+        calculate_checksum(protocol, &packet, packet_size);
+
+        // Send the packet
+        if (sendto(sock, &packet, packet_size, 0, &g_scan.IPs->destination.addr.addr, g_scan.IPs->destination.addrlen) == -1)
+            error(1, "sendto: %s\n", strerror(errno));
+    }
 
     close(sock);
     free(arg);
     return NULL;
 }
 
-void thread_send() {
-    int techniques = 0;
-    for (int i = 0; i < TECHNIQUE_COUNT; i++)
-        if (g_scan.options.techniques[i])
-            techniques++;
-
-    if (g_scan.options.thread_count < techniques) {
-        g_scan.options.thread_count = techniques;
-        printf("Warning: too less threads, using %d instead\n", techniques);
-    }
-
-    int chunks[TECHNIQUE_COUNT] = {0};
+void dispatch(int amount, int *chunks, t_range chunk_range, bool *check)
+{
+    bzero(chunks, sizeof(int) * (chunk_range.max - chunk_range.min));
+    int current = chunk_range.min;
+    for (int i = 0; i < amount; i++)
     {
-        int thread = 0;
-        t_technique technique = 0;
-        while (thread < g_scan.options.thread_count) {
-            if (technique == TECHNIQUE_COUNT)
-                technique = 0;
-            if (!g_scan.options.techniques[technique++])
-                continue;
-            chunks[technique - 1]++;
-            thread++;
-        }
+        if (current >= chunk_range.max)
+            current = chunk_range.min;
+        current++;
+        if (check != NULL && !check[current - 1])
+            i--;
+        else
+            chunks[current - 1]++;
     }
+}
 
+void thread_send() {
     pthread_t thread[g_scan.options.thread_count];
     int id = 0;
-    for (int i = 0; i < TECHNIQUE_COUNT; i++)
-        if (g_scan.options.techniques[i]) {
-            int scans = g_scan.options.port_range.max - g_scan.options.port_range.min;
 
-            int padding = scans / chunks[i];
-            int rest = scans % chunks[i];
-            int current_port = g_scan.options.port_range.min;
+    int chunks[TECHNIQUE_COUNT];
+    dispatch(g_scan.options.thread_count, chunks, (t_range){0, TECHNIQUE_COUNT}, g_scan.options.techniques);
 
-            printf("scans: %d, threads: %d, padding: %d, rest: %d\n", scans, chunks[i], padding, rest);
+    for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
+        if (g_scan.options.techniques[technique])
+        {
+            int threads[chunks[technique]];
+            dispatch(g_scan.options.port_range.max - g_scan.options.port_range.min + 1, threads, (t_range){0, chunks[technique]}, NULL);
 
-            for (int thread_no = 0; thread_no < chunks[i]; thread_no++) {
-                if (thread_no == chunks[i] - 1)
-                    padding += rest;
+            int last = 0;
+            for (int thread_no = 0; thread_no < chunks[technique]; thread_no++) {
+                t_options *range = malloc(sizeof(t_options));
 
-                t_range *range = malloc(sizeof(t_range));
-                range->min = current_port;
-                range->max = current_port += padding;
+                for (int i = 0; i < TECHNIQUE_COUNT; i++)
+                    range->techniques[i] = false;
+                range->techniques[technique] = true;
+                range->port_range.min = last;
+                range->port_range.max = last += threads[thread_no];
 
-                printf("thread %d: %d - %d\n", thread_no, range->min, range->max);
+                if (pthread_create(&thread[id++], NULL, routine, range) != 0)
+                    error(1, "pthread_create: %s\n", strerror(errno));
             }
         }
+
+    for (int i = 0; i < id; i++)
+        pthread_join(thread[i], NULL);
 }
