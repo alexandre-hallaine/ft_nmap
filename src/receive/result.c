@@ -1,6 +1,21 @@
 #include "functions.h"
+#include "nmap_services.h"
 
 #include <stdio.h>
+
+char *get_service_name(unsigned short port, bool udp)
+{
+    if (udp) {
+        for (int i = 0; i < amount_tcp; i++)
+            if (services_tcp[i].port == port)
+                return services_tcp[i].name;
+    }
+    else
+        for (int i = 0; i < amount_udp; i++)
+            if (services_udp[i].port == port)
+                return services_udp[i].name;
+    return "unknown";
+}
 
 void print_result()
 {
@@ -15,32 +30,32 @@ void print_result()
         for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
             if (g_scan.options.techniques[technique]) {
                 unsigned short amount[UNFILTERED + 1] = {0};
-                t_status default_status = UNSCANNED;
 
-                printf("\nResults for technique: %s\n", get_technique_name(technique));
+                printf("%s", get_technique_name(technique));
                 // Calculate how many times each status appears for this technique
                 for (int i = 0; i <= USHRT_MAX; i++)
                     if (g_scan.options.ports[i])
                         amount[ip->status[technique][i]]++;
 
-                // Ignore the status that appears the most
-                for (t_status type = OPEN; type <= UNFILTERED; type++)
-                    if (amount[type] > amount[default_status])
-                        default_status = type;
-                printf("Not shown: %d ports on state ", amount[default_status]);
-                print_status_name(default_status);
+                int printed = 0;
+                for (t_status type = 0; type < UNFILTERED + 1; type++)
+                    if (amount[type] > 30) {
+                        printf("\t%d ports on state ", amount[type]);
+                        print_status_name(type);
 
-                // Don't print anything if all the ports are on the same state
-                if (amount[default_status] == g_scan.options.ports_count)
+                        printed += amount[type];
+                        amount[type] = 0;
+                    }
+
+                if (printed == g_scan.options.ports_count)
                     continue;
 
-                printf("PORT\tSTATE\n");
-                // Print the ports that are not on the default state
-                for (int index = 1; index <= USHRT_MAX; index++)
-                    if (g_scan.options.ports[index] && ip->status[technique][index] != default_status) {
-                            printf("%d\t", index);
-                            print_status_name(ip->status[technique][index]);
-                        }
+                printf("\tPORT\tSERVICE\t\tSTATE\n");
+                for (int i = 0; i <= USHRT_MAX; i++)
+                    if (g_scan.options.ports[i] && amount[ip->status[technique][i]] > 0) {
+                        printf("\t%d\t%-15s\t", i, get_service_name(i, technique == UDP));
+                        print_status_name(ip->status[technique][i]);
+                    }
             }
     }
 }

@@ -2,7 +2,7 @@ NAME	:= ft_nmap
 CFLAGS	:= -Wall -Wextra -Wunreachable-code
 # CFLAGS	+= -Werror
 
-HEADERS	:= -I ./include
+HEADERS	:= -I ./include -I ./scripts
 LIBS	:= -lpcap -lpthread
 SRCS	:= $(shell find src -type f -name "*.c")
 OBJS	:= $(SRCS:src/%.c=obj/%.o)

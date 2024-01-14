@@ -21,17 +21,28 @@ int main(int argc, char *argv[])
     pcap_compile(g_scan.handle, &fp, g_scan.filter, 1, PCAP_NETMASK_UNKNOWN);
     pcap_setfilter(g_scan.handle, &fp);
 
+    printf("Starting scan...\n");
     if (g_scan.options.thread_count > 1)
         thread_send();
-    else for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
-        if (g_scan.options.techniques[technique])
-        {
-            t_options *options = malloc(sizeof(t_options));
-            ft_memcpy(options, &g_scan.options, sizeof(t_options));
-            routine(options);
-            sleep(1);
-        }
+    else {
+        for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
+            if (g_scan.options.techniques[technique])
+            {
+                printf("%s... ", get_technique_name(technique));
+                fflush(stdout);
 
+                t_options *options = malloc(sizeof(t_options));
+                ft_memcpy(options, &g_scan.options, sizeof(t_options));
+                for (t_technique i = 0; i < TECHNIQUE_COUNT; i++)
+                    options->techniques[i] = false;
+                options->techniques[technique] = true;
+                routine(options);
+                sleep(1);
+            }
+        printf("\n");
+    }
+
+    printf("Waiting for responses...\n");
     signal(SIGALRM, timeout);
     g_scan.stop = false;
     while (!g_scan.stop) {

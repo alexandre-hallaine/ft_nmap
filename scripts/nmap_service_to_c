@@ -9,6 +9,7 @@ local file = io.open("nmap_services", "r")
 local output = io.open("nmap_services.h", "w")
 
 -- write the header
+output:write("#pragma once\n\n")
 output:write("/*\n")
 output:write(" * nmap_services.h\n")
 output:write(" *\n")
@@ -17,17 +18,21 @@ output:write(" */\n\n")
 
 -- write the table
 output:write("struct service {\n")
-output:write("    char *name;\n")
 output:write("    int port;\n")
+output:write("    char *name;\n")
 output:write("};\n\n")
 
 -- read the file line by line
+local amount
 function processFile(file, protocol)
     if protocol == "tcp" then
         output:write("struct service services_tcp[] = {\n")
     elseif protocol == "udp" then
         output:write("struct service services_udp[] = {\n")
     end
+
+    -- reset the amount
+    amount = 0
 
     for line in file:lines() do
         -- ignore comments
@@ -49,13 +54,17 @@ function processFile(file, protocol)
             end
 
             -- write the line
-            output:write("    {\"" .. name .. "\", " .. port .. "},\n")
+            output:write("    {" .. port .. ", \"" .. name .. "\"},\n")
+            amount = amount + 1
             ::continue::
         end
     end
 
     -- write the footer
     output:write("};\n")
+
+    -- write the amount
+    output:write("int amount_" .. protocol .. " = " .. amount .. ";\n\n")
 end
 
 processFile(file, "tcp")

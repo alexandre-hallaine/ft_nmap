@@ -10,17 +10,12 @@ void usage(char *program)
 {
     printf("usage: %s [options] <host>\n"
         "options:\n"
-        "\t-h:\t\t\tdisplay this help\n"
-        "\t-f <file>:\t\tscan the specified file\n"
-        "\t-t <threads>:\t\tscan with specified threads (default: 0)\n"
-        "\t-p <port min>-<port max>:\tscan the specified port range (default: 1-1024)\n"
-        "\t-s <techniques>:\t\tscan with specified techniques (eg: '-s AS' for ACK and SYN)\n"
-        "\t\tA: ACK\n"
-        "\t\tS: SYN\n"
-        "\t\tF: FIN\n"
-        "\t\tN: NUL\n"
-        "\t\tX: XMAS\n"
-        "\t\tU: UDP\n", program);
+        "\t-h:\t\t\t\tdisplay this help\n"
+        "\t-p <ports>:\t\t\tscan the specified ports (default: 1-1024, eg. 1-5,80)\n"
+        "\t-s <techniques>:\t\tscan with specified techniques (default: ASFNXU)\n"
+        "\t\t\t\t\tA: ACK, S: SYN, F: FIN, N: NUL, X: XMAS, U: UDP\n"
+        "\t-f <file>:\t\t\tscan the specified file (host not needed)\n"
+        "\t-t <threads>:\t\t\tscan with specified threads (default: 0)\n", program);
 
     error(1, NULL);
 }
@@ -176,6 +171,8 @@ void init(int argc, char *argv[])
     if (getuid() != 0)
         error(1, "usage: You need to be root to run this program\n");
 
+    sprintf(g_scan.buffer, "Address: ");
+
     // Parse flags
     unsigned short index;
     for (index = 1; index < argc && argv[index][0] == '-'; index++)
@@ -210,7 +207,19 @@ void init(int argc, char *argv[])
             usage(argv[0]);
         add_IP(get_info(argv[index]));
     }
+    strcat(g_scan.buffer, "\n");
 
     // Get interface
     g_scan.interface = get_interface(g_scan.family);
+    printf("%s", g_scan.buffer);
+
+    printf("Techniques: ");
+    for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
+        if (g_scan.options.techniques[i])
+            printf("%s ", get_technique_name(i));
+    printf("\n");
+
+    printf("Threads: %d\n", g_scan.options.thread_count);
+
+    printf("\n");
 }

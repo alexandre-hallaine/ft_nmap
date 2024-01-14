@@ -112,6 +112,7 @@ typedef struct
     int family;
     t_IP *IPs;
 
+    char buffer[BUFSIZ];
     char filter[BUFSIZ];
     pcap_t *handle;
     bool stop;
