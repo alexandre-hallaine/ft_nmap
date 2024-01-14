@@ -47,9 +47,10 @@ int main(int argc, char *argv[])
 
     printf("Waiting for responses...\n");
     signal(SIGALRM, timeout);
+    // In case of no response, stop the scan after 30 seconds
+    alarm(15);
     g_scan.stop = false;
     while (!g_scan.stop) {
-        alarm(2);
         pcap_dispatch(g_scan.handle, -1, packet_handler, NULL);
     }
 

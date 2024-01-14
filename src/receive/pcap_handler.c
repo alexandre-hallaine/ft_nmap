@@ -4,6 +4,7 @@
 #include <netinet/ip6.h>
 #include <netinet/ip_icmp.h>
 #include <string.h>
+#include <unistd.h>
 
 void icmp_analyze(int technique, int port, struct icmphdr *icmp, t_IP *IP) {
     // Move to the pcap filter if possible
@@ -60,4 +61,6 @@ void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned 
         else if (packet->tcp.rst)
             IP->status[technique][port] = technique == ACK ? UNFILTERED : CLOSED;
     }
+    // If there is a response, reset the alarm to 5 seconds
+    alarm(5);
 }
