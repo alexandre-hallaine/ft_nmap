@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void free_IPs()
 {
@@ -34,17 +35,26 @@ void add_IP(t_addrinfo addr) {
     for (; head && head->next; head = head->next);
     new_node = malloc(sizeof(t_IP));
 
-    if (!new_node) {
+    if (!new_node)
         error(1, "add_to_list: malloc failed\n");
-    }
 
     new_node->destination = addr;
     new_node->next = NULL;
 
     if (!g_scan.IPs)
         g_scan.IPs = new_node;
-    else
+    else {
+        strcat(g_scan.filter, " or ");
         head->next = new_node;
+    }
+
+    char ip[INET6_ADDRSTRLEN] = {0};
+    if (g_scan.family == AF_INET)
+        inet_ntop(g_scan.family, &addr.addr.in.sin_addr, ip, sizeof(ip));
+    else if (g_scan.family == AF_INET6)
+        inet_ntop(g_scan.family, &addr.addr.in6.sin6_addr, ip, sizeof(ip));
+    strcat(g_scan.filter, "src ");
+    strcat(g_scan.filter, ip);
 }
 
 char *get_technique_name(t_technique technique)

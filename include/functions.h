@@ -22,7 +22,7 @@ void command_parser(int argc, char *argv[]);
 t_packet create_packet(t_technique technique);
 
 // checksum.c
-void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size);
+void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size, t_IP *IP);
 
 // send.c
 void *routine(void *arg);

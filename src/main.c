@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     command_parser(argc, argv);
 
     g_scan.handle = pcap_open_live(NULL, BUFSIZ, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL);
-    struct bpf_program fp;
+    struct bpf_program fp = {0};
     pcap_compile(g_scan.handle, &fp, g_scan.filter, 1, PCAP_NETMASK_UNKNOWN);
     pcap_setfilter(g_scan.handle, &fp);
 
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
         if (g_scan.options.techniques[technique])
         {
             t_options *options = malloc(sizeof(t_options));
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < TECHNIQUE_COUNT; i++)
                 options->techniques[i] = false;
             options->techniques[technique] = true;
             options->port_range = g_scan.options.port_range;
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     signal(SIGALRM, timeout);
     g_scan.stop = false;
     while (!g_scan.stop) {
-        alarm(1);
+        alarm(5);
         pcap_dispatch(g_scan.handle, -1, packet_handler, NULL);
     }
 

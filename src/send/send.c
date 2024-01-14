@@ -11,7 +11,7 @@
 int create_socket(int protocol)
 {
     // Socket for sending TCP / UDP packets
-	int sock = socket(g_scan.IPs->destination.family, SOCK_RAW, protocol);
+	int sock = socket(g_scan.family, SOCK_RAW, protocol);
 	if (sock == -1)
 		error(1, "socket: %s\n", strerror(errno));
 
@@ -21,7 +21,7 @@ int create_socket(int protocol)
 	// 	error(1, "setsockopt: %s\n", strerror(errno));
 
     // Bind the socket to the interface
-	if (g_scan.IPs->destination.family == AF_INET)
+	if (g_scan.family == AF_INET)
 		bind(sock, (struct sockaddr *)&g_scan.interface.in, sizeof(g_scan.interface.in));
 	else
 		bind(sock, (struct sockaddr *)&g_scan.interface.in6, sizeof(g_scan.interface.in6));
@@ -58,30 +58,31 @@ void *routine(void *arg)
     // Create a raw socket for sending the packet
     int sock = create_socket(protocol);
 
-    for (unsigned short port = options->port_range.min; port <= options->port_range.max; port++)
-    {
-        // Set a default status for the port
-        g_scan.status[technique][port] = FILTERED;
-        if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
-            g_scan.status[technique][port] |= OPEN;
-
-        // Set the destination port of the packet and calculate the checksum
-        if (protocol == IPPROTO_TCP)
+    for (t_IP *IP = g_scan.IPs; IP != NULL; IP = IP->next)
+        for (unsigned short port = options->port_range.min; port <= options->port_range.max; port++)
         {
-            packet.tcp.dest = htons(port);
-            packet.tcp.check = 0;
-        }
-        else
-        {
-            packet.udp.dest = htons(port);
-            packet.udp.check = 0;
-        }
-        calculate_checksum(protocol, &packet, packet_size);
+            // Set a default status for the port
+            IP->status[technique][port] = FILTERED;
+            if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
+                IP->status[technique][port] |= OPEN;
 
-        // Send the packet
-        if (sendto(sock, &packet, packet_size, 0, &g_scan.IPs->destination.addr.addr, g_scan.IPs->destination.addrlen) == -1)
-            error(1, "sendto: %s\n", strerror(errno));
-    }
+            // Set the destination port of the packet and calculate the checksum
+            if (protocol == IPPROTO_TCP)
+            {
+                packet.tcp.dest = htons(port);
+                packet.tcp.check = 0;
+            }
+            else
+            {
+                packet.udp.dest = htons(port);
+                packet.udp.check = 0;
+            }
+            calculate_checksum(protocol, &packet, packet_size, IP);
+
+            // Send the packet
+            if (sendto(sock, &packet, packet_size, 0, &IP->destination.addr.addr, IP->destination.addrlen) == -1)
+                error(1, "sendto: %s\n", strerror(errno));
+        }
 
     close(sock);
     free(arg);

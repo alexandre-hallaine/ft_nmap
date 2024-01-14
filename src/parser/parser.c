@@ -13,6 +13,8 @@ void usage(char *program)
     // should buffer this
 	printf("options:\n");
 	printf("\t-h:\t\t\tdisplay this help\n");
+    printf("\t-f <file>:\t\tscan the specified file\n");
+    printf("\t-t <threads>:\t\tscan with specified threads (default: 0)\n");
 	printf("\t-p <port min>-<port max>:\tscan the specified port range (default: 1-1024)\n");
 	printf("\t-s <techniques>:\t\tscan with specified techniques (eg: '-s AS' for ACK and SYN)\n");
 	printf("\t\tA: ACK\n");
@@ -31,6 +33,8 @@ void parse_thread(char *thread)
 
     if (g_scan.options.thread_count > 250)
         error(2, "usage: %s: threads execeeding 250\n", thread);
+    else if (g_scan.options.thread_count <= 0)
+        error(2, "usage: %s: threads must be a number greater than 0\n", thread);
 }
 
 void parse_port_range(char *port_range)
@@ -80,6 +84,25 @@ void parse_technique(char *technique)
 		}
 }
 
+void parse_file(char *file)
+{
+    FILE *fp = fopen(file, "r");
+    if (fp == NULL)
+        error(2, "usage: %s: file not found\n", file);
+
+    char line[1024] = {0};
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        char *newline = strchr(line, '\n');
+        if (newline != NULL)
+            *newline = '\0';
+
+        add_IP(get_info(line));
+    }
+
+    fclose(fp);
+}
+
 void flag_parser(unsigned short *index, char *argv[])
 {
 	// may need to be modified when more options are added
@@ -116,6 +139,15 @@ void flag_parser(unsigned short *index, char *argv[])
 
         parse_thread(argv[*index]);
         break;
+
+    case 'f':
+        (*index)++;
+        if (argv[*index] == NULL)
+            usage(argv[0]);
+
+        parse_file(argv[*index]);
+        break;
+
 
 	default:
 		error(2, "usage: %s: invalid option\n", argv[*index]);
@@ -159,11 +191,12 @@ void command_parser(int argc, char *argv[])
 	}
 
     // I feel like this should be done before the flags
-	if (index != argc - 1)
-		usage(argv[0]);
-    strcat(g_scan.filter, "src ");
-	// g_scan.IPs->destination = get_info(argv[index]);
-    // g_scan.IPs->next = NULL;
-    add_IP(get_info(argv[index]));
-	g_scan.interface = get_interface(g_scan.IPs->destination.family);
+    if (g_scan.IPs == NULL)
+    {
+        if (g_scan.IPs == NULL && index != argc - 1)
+            usage(argv[0]);
+        add_IP(get_info(argv[index]));
+    }
+
+    g_scan.interface = get_interface(g_scan.family);
 }

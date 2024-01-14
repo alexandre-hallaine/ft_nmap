@@ -2,6 +2,8 @@
 #define NMAP_H
 
 #include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
@@ -38,7 +40,6 @@ typedef union
 
 typedef struct
 {
-    int family;
     t_addr addr;
     socklen_t addrlen;
 } t_addrinfo;
@@ -54,9 +55,20 @@ typedef enum
 } t_technique;
 #define TECHNIQUE_COUNT 6
 
+typedef enum
+{
+    UNSCANNED = 0,
+
+    OPEN = 1 << 0,
+    CLOSED = 1 << 1,
+    FILTERED = 1 << 2,
+    UNFILTERED = 1 << 3,
+} t_status;
+
 typedef struct
 {
     t_addrinfo destination;
+    t_status status[TECHNIQUE_COUNT][USHRT_MAX]; // status of each port
     void *next;
 } t_IP;
 
@@ -74,28 +86,20 @@ typedef struct
 
 typedef union
 {
+    struct iphdr ipv4;
+    struct ip6_hdr ipv6;
     struct tcphdr tcp;
     struct udphdr udp;
     struct icmphdr icmp;
 } t_packet;
 
-typedef enum
-{
-    UNSCANNED = 0,
-
-    OPEN = 1 << 0,
-    CLOSED = 1 << 1,
-    FILTERED = 1 << 2,
-    UNFILTERED = 1 << 3,
-} t_status;
-
 typedef struct
 {
     t_options options;
     t_addr interface;
+    int family;
     t_IP *IPs;
 
-    t_status status[TECHNIQUE_COUNT][USHRT_MAX]; // status of each port
     char filter[BUFSIZ];
     pcap_t *handle;
     bool stop;

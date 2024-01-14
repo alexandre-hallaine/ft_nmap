@@ -61,15 +61,16 @@ t_addrinfo get_info(char *host)
         inet_ntop(res->ai_family, &((struct sockaddr_in6 *)res->ai_addr)->sin6_addr, ip, sizeof(ip));
     else
         error(1, "get_info: unknown address family\n");
+    if (g_scan.family == 0)
+        g_scan.family = res->ai_family;
+    else if (g_scan.family != res->ai_family)
+        error(1, "get_info: all addresses must be of the same family\n");
     printf("Using host %s with address %s\n", res->ai_canonname, ip);
-    strcat(g_scan.filter, ip);
 
-    t_addrinfo addr = {
-        .family = res->ai_family,
-        .addrlen = res->ai_addrlen,
-    };
+    t_addrinfo addr = { .addrlen = res->ai_addrlen };
     // copying the address bytes to avoid losing information
     memcpy(&addr.addr, res->ai_addr, res->ai_addrlen);
+
     freeaddrinfo(res);
     return addr;
 }
