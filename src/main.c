@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 t_scan g_scan = {0};
 
@@ -26,10 +27,7 @@ int main(int argc, char *argv[])
         if (g_scan.options.techniques[technique])
         {
             t_options *options = malloc(sizeof(t_options));
-            for (int i = 0; i < TECHNIQUE_COUNT; i++)
-                options->techniques[i] = false;
-            options->techniques[technique] = true;
-            options->port_range = g_scan.options.port_range;
+            memcpy(options, &g_scan.options, sizeof(t_options));
             routine(options);
             sleep(1);
         }

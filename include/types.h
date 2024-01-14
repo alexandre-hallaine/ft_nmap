@@ -77,7 +77,7 @@ typedef enum
 typedef struct
 {
     t_addrinfo destination;
-    t_status status[TECHNIQUE_COUNT][USHRT_MAX]; // status of each port
+    t_status status[TECHNIQUE_COUNT][USHRT_MAX + 1]; // status of each port
     void *next;
 } t_IP;
 
@@ -90,7 +90,9 @@ typedef struct
 {
     bool techniques[TECHNIQUE_COUNT];
     int techniques_count;
-    t_range port_range;
+    bool ports[USHRT_MAX + 1];
+    int ports_count;
+
     unsigned short thread_count;
 } t_options;
 
