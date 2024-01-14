@@ -36,8 +36,6 @@ void *routine(void *arg)
         if (options->techniques[technique])
             break;
 
-    //printf("Sending packet... (technique: %s), (port: %d - %d)\n", get_technique_name(technique), options->port_range.min, options->port_range.max);
-
     // Create a packet containing the header of the protocol we want to use (TCP or UDP)
     t_packet packet = create_packet(technique);
     unsigned short packet_size;
@@ -59,30 +57,31 @@ void *routine(void *arg)
     int sock = create_socket(protocol);
 
     for (t_IP *IP = g_scan.IPs; IP != NULL; IP = IP->next)
-        for (unsigned short port = options->port_range.min; port <= options->port_range.max; port++)
-        {
-            // Set a default status for the port
-            IP->status[technique][port] = FILTERED;
-            if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
-                IP->status[technique][port] |= OPEN;
-
-            // Set the destination port of the packet and calculate the checksum
-            if (protocol == IPPROTO_TCP)
+        for (int port = 0; port <= USHRT_MAX; port++)
+            if (options->ports[port])
             {
-                packet.tcp.dest = htons(port);
-                packet.tcp.check = 0;
-            }
-            else
-            {
-                packet.udp.dest = htons(port);
-                packet.udp.check = 0;
-            }
-            calculate_checksum(protocol, &packet, packet_size, IP);
+                // Set a default status for the port
+                IP->status[technique][port] = FILTERED;
+                if (technique == FIN || technique == NUL || technique == XMAS || technique == UDP)
+                    IP->status[technique][port] |= OPEN;
 
-            // Send the packet
-            if (sendto(sock, &packet, packet_size, 0, &IP->destination.addr.addr, IP->destination.addrlen) == -1)
-                error(1, "sendto: %s\n", strerror(errno));
-        }
+                // Set the destination port of the packet and calculate the checksum
+                if (protocol == IPPROTO_TCP)
+                {
+                    packet.tcp.dest = htons(port);
+                    packet.tcp.check = 0;
+                }
+                else
+                {
+                    packet.udp.dest = htons(port);
+                    packet.udp.check = 0;
+                }
+                calculate_checksum(protocol, &packet, packet_size, IP);
+
+                // Send the packet
+                if (sendto(sock, &packet, packet_size, 0, &IP->destination.addr.addr, IP->destination.addrlen) == -1)
+                    error(1, "sendto: %s\n", strerror(errno));
+            }
 
     close(sock);
     free(arg);
@@ -116,18 +115,28 @@ void thread_send() {
         if (g_scan.options.techniques[technique])
         {
             int threads[chunks[technique]];
-            dispatch(g_scan.options.port_range.max - g_scan.options.port_range.min + 1, threads, (t_range){0, chunks[technique]}, NULL);
+            dispatch(g_scan.options.ports_count, threads, (t_range){0, chunks[technique]}, NULL);
 
-            int last = g_scan.options.port_range.min;
+            int current = 0;
             for (int thread_no = 0; thread_no < chunks[technique]; thread_no++) {
                 t_options *range = malloc(sizeof(t_options));
+                int amount = threads[thread_no];
 
                 for (int i = 0; i < TECHNIQUE_COUNT; i++)
                     range->techniques[i] = false;
                 range->techniques[technique] = true;
-                range->port_range.min = last;
-                range->port_range.max = last += threads[thread_no];
 
+                for (int i = 0; i <= USHRT_MAX; i++)
+                    range->ports[i] = false;
+
+                for (; current <= USHRT_MAX && amount != 0; current++)
+                    if (g_scan.options.ports[current])
+                    {
+                        range->ports[current] = true;
+                        amount--;
+                    }
+
+//                printf("Sending packet... (technique: %s), (ports: %d)\n", get_technique_name(technique), threads[thread_no]);
                 if (pthread_create(&thread[id++], NULL, routine, range) != 0)
                     error(1, "pthread_create: %s\n", strerror(errno));
             }

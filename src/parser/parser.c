@@ -36,23 +36,45 @@ void parse_thread(char *thread)
         error(2, "usage: %s: threads must be a number greater than 0\n", thread);
 }
 
-void parse_port_range(char *port_range) // need to change and send
+void parse_port_range(char *ports) // need to change and send
 {
-	char *delimiter = strchr(port_range, '-');
-	if (delimiter == NULL)
-		error(2, "usage: %s: invalid port range\n", port_range);
+    char *delimiter = strchr(ports, ',');
+    int base = atoi(ports);
+    int max;
 
-    // Check if number plz
-	g_scan.options.port_range.min = atoi(port_range);
-	g_scan.options.port_range.max = atoi(delimiter + 1);
+    if (delimiter != NULL)
+    {
+        parse_port_range(delimiter + 1);
+        *delimiter = '\0';
+    }
 
-	// make error messages more accurate
-    if (g_scan.options.port_range.min <= 0 || g_scan.options.port_range.max <= 0) // can't be 0 or negative	(negative check unnecessary if properly isnumber before)
-        error(2, "usage: %s: invalid port range\n", port_range);
-	else if (g_scan.options.port_range.min >= g_scan.options.port_range.max) // min must be smaller than max
-		error(2, "usage: %s: invalid port range\n", port_range);
-    else if (g_scan.options.port_range.max - g_scan.options.port_range.min + 1 > 1024) // max - min + 1 must be smaller than 1024 (subject)
-        error(2, "usage: %s: port range exceeding 1024\n", port_range);
+    if (strlen(ports) == 0)
+        error(2, "usage: you must specify a port\n");
+
+    delimiter = strchr(ports, '-');
+    if (delimiter != NULL)
+        max = atoi(delimiter + 1);
+
+    if (base < 0 || base > 65535)
+        error(2, "usage: %d: invalid port\n", base);
+    else if (delimiter == NULL)
+        g_scan.options.ports[base] = true;
+    else if (max < 0 || max > USHRT_MAX)
+        error(2, "usage: %d: invalid port\n", max);
+    else if (base > max)
+        error(2, "usage: %d-%d: min port must be less than max port\n", base, max);
+    else
+        for (int i = base; i <= max; i++)
+            g_scan.options.ports[i] = true;
+
+    int amount = 0;
+    for (int i = 0; i <= USHRT_MAX; i++)
+        if (g_scan.options.ports[i])
+            amount++;
+
+    if (amount > 1024)
+        error(2, "usage: %s: port range exceeding 1024\n", ports);
+    g_scan.options.ports_count = amount;
 }
 
 void parse_technique(char *technique)
@@ -166,10 +188,11 @@ void init(int argc, char *argv[])
     }
 
     // If no port range specified, scan 1-1024
-    if (g_scan.options.port_range.max == 0)
+    if (g_scan.options.ports_count == 0)
     {
-        g_scan.options.port_range.min = 1;
-        g_scan.options.port_range.max = 1024;
+        for (unsigned short i = 1; i <= 1024; i++)
+            g_scan.options.ports[i] = true;
+        g_scan.options.ports_count = 1024;
     }
 
     // If the amount of threads is less than the amount of techniques, use the amount of techniques
