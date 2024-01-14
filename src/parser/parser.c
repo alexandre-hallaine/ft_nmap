@@ -22,13 +22,15 @@ void usage(char *program)
         "\t\tX: XMAS\n"
         "\t\tU: UDP\n", program);
 
-	error(1, NULL);
+    error(1, NULL);
 }
 
 void parse_thread(char *thread)
 {
-    // Check if number plz
-	g_scan.options.thread_count = atoi(thread);
+    if (!is_number(thread))
+        error(2, "usage: %s: threads must be a number\n", thread);
+
+    g_scan.options.thread_count = atoi(thread);
 
     if (g_scan.options.thread_count > 250)
         error(2, "usage: %s: threads execeeding 250\n", thread);
@@ -38,8 +40,7 @@ void parse_thread(char *thread)
 
 void parse_port_range(char *ports) // need to change and send
 {
-    char *delimiter = strchr(ports, ',');
-    int base = atoi(ports);
+    char *delimiter = ft_strchr(ports, ',');
     int max;
 
     if (delimiter != NULL)
@@ -51,10 +52,21 @@ void parse_port_range(char *ports) // need to change and send
     if (strlen(ports) == 0)
         error(2, "usage: you must specify a port\n");
 
-    delimiter = strchr(ports, '-');
-    if (delimiter != NULL)
-        max = atoi(delimiter + 1);
 
+    delimiter = ft_strchr(ports, '-');
+    if (delimiter != NULL)
+    {
+        if (!is_number(delimiter + 1))
+            error(2, "usage: %s: threads must be a number\n", delimiter + 1);
+
+        *delimiter = '\0';
+        max = atoi(delimiter + 1);
+    }
+
+    if (!is_number(ports))
+        error(2, "usage: %s: threads must be a number\n", ports);
+
+    int base = atoi(ports);
     if (base < 0 || base > 65535)
         error(2, "usage: %d: invalid port\n", base);
     else if (delimiter == NULL)
@@ -79,33 +91,33 @@ void parse_port_range(char *ports) // need to change and send
 
 void parse_technique(char *technique)
 {
-	for (unsigned char i = 0; i < strlen(technique); i++)
+    for (unsigned char i = 0; i < strlen(technique); i++)
     {
         g_scan.options.techniques_count++;
 
-		switch (technique[i])
-		{
-		case 'A':
-			g_scan.options.techniques[ACK] = true;
-			break;
-		case 'S':
-			g_scan.options.techniques[SYN] = true;
-			break;
-		case 'F':
-			g_scan.options.techniques[FIN] = true;
-			break;
-		case 'N':
-			g_scan.options.techniques[NUL] = true;
-			break;
-		case 'X':
-			g_scan.options.techniques[XMAS] = true;
-			break;
-		case 'U':
-			g_scan.options.techniques[UDP] = true;
-			break;
-		default:
-			error(2, "usage: %c: unknown technique\n", technique[i]);
-		}
+        switch (technique[i])
+        {
+        case 'A':
+            g_scan.options.techniques[ACK] = true;
+            break;
+        case 'S':
+            g_scan.options.techniques[SYN] = true;
+            break;
+        case 'F':
+            g_scan.options.techniques[FIN] = true;
+            break;
+        case 'N':
+            g_scan.options.techniques[NUL] = true;
+            break;
+        case 'X':
+            g_scan.options.techniques[XMAS] = true;
+            break;
+        case 'U':
+            g_scan.options.techniques[UDP] = true;
+            break;
+        default:
+            error(2, "usage: %c: unknown technique\n", technique[i]);
+        }
     }
 }
 
@@ -131,7 +143,7 @@ void flag_parser(unsigned short *index, char *argv[])
     if (flag == 'h')
         usage(argv[0]);
 
-    if (flag && strchr(flags, flag) == NULL)
+    if (flag && ft_strchr(flags, flag) == NULL)
         error(2, "usage: %s: invalid option\n", argv[*index]);
 
     (*index)++;
@@ -161,8 +173,8 @@ void flag_parser(unsigned short *index, char *argv[])
 void init(int argc, char *argv[])
 {
     // Exit if not root
-	if (getuid() != 0)
-		error(1, "usage: You need to be root to run this program\n");
+    if (getuid() != 0)
+        error(1, "usage: You need to be root to run this program\n");
 
     // Parse flags
     unsigned short index;

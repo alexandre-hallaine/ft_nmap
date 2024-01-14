@@ -69,7 +69,7 @@ t_addrinfo get_info(char *host)
 
     t_addrinfo addr = { .addrlen = res->ai_addrlen };
     // copying the address bytes to avoid losing information
-    memcpy(&addr.addr, res->ai_addr, res->ai_addrlen);
+    ft_memcpy(&addr.addr, res->ai_addr, res->ai_addrlen);
 
     freeaddrinfo(res);
     return addr;

@@ -90,7 +90,7 @@ void *routine(void *arg)
 
 void dispatch(int amount, int *chunks, t_range chunk_range, bool *check)
 {
-    bzero(chunks, sizeof(int) * (chunk_range.max - chunk_range.min));
+    ft_bzero(chunks, sizeof(int) * (chunk_range.max - chunk_range.min));
     int current = chunk_range.min;
     for (int i = 0; i < amount; i++)
     {
@@ -136,7 +136,7 @@ void thread_send() {
                         amount--;
                     }
 
-//                printf("Sending packet... (technique: %s), (ports: %d)\n", get_technique_name(technique), threads[thread_no]);
+                printf("Sending packet... (technique: %s), (ports: %d)\n", get_technique_name(technique), threads[thread_no]);
                 if (pthread_create(&thread[id++], NULL, routine, range) != 0)
                     error(1, "pthread_create: %s\n", strerror(errno));
             }

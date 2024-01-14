@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
         if (g_scan.options.techniques[technique])
         {
             t_options *options = malloc(sizeof(t_options));
-            memcpy(options, &g_scan.options, sizeof(t_options));
+            ft_memcpy(options, &g_scan.options, sizeof(t_options));
             routine(options);
             sleep(1);
         }

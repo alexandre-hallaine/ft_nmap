@@ -99,3 +99,41 @@ int _ceil(float num) {
         return (int)num;
     return (int)num + 1;
 }
+
+char *ft_memcpy(void *dest, const void *src, size_t n)
+{
+    char *d = dest;
+    const char *s = src;
+    while (n--)
+        *d++ = *s++;
+    return dest;
+}
+
+char *ft_strchr(const char *s, int c)
+{
+    while (*s)
+    {
+        if (*s == c)
+            return (char *)s;
+        s++;
+    }
+    if (*s == c)
+        return (char *)s;
+    return NULL;
+}
+
+char *ft_bzero(void *str, size_t n)
+{
+    char *s = str;
+    while (n--)
+        *s++ = 0;
+    return str;
+}
+
+int is_number(char *str)
+{
+    for (unsigned char i = 0; i < strlen(str); i++)
+        if (str[i] < '0' || str[i] > '9')
+            return 0;
+    return 1;
+}

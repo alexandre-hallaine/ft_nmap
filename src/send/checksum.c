@@ -1,4 +1,4 @@
-#include "types.h"
+#include "functions.h"
 
 #include <string.h>
 #include <netdb.h>
@@ -39,7 +39,7 @@ void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short pack
             .length = htons(packet_size)
         };
 
-        memcpy(buffer, &pseudo_header, ip_size);
+        ft_memcpy(buffer, &pseudo_header, ip_size);
     }
     else
     {
@@ -50,14 +50,14 @@ void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short pack
         };
 
         // We need to copy the address byte by byte because it is an array
-        memcpy(pseudo_header.source_address, &g_scan.interface.in6.sin6_addr, sizeof(pseudo_header.source_address));
-        memcpy(pseudo_header.destination_address, &IP->destination.addr.in6.sin6_addr, sizeof(pseudo_header.destination_address));
+        ft_memcpy(pseudo_header.source_address, &g_scan.interface.in6.sin6_addr, sizeof(pseudo_header.source_address));
+        ft_memcpy(pseudo_header.destination_address, &IP->destination.addr.in6.sin6_addr, sizeof(pseudo_header.destination_address));
 
-        memcpy(buffer, &pseudo_header, ip_size);
+        ft_memcpy(buffer, &pseudo_header, ip_size);
     }
 
     // Copy the packet to the rest of the buffer
-    memcpy(buffer + ip_size, packet, packet_size);
+    ft_memcpy(buffer + ip_size, packet, packet_size);
 
     // Calculate the checksum for TCP or UDP
     if (protocol == IPPROTO_TCP)
