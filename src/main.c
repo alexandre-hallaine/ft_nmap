@@ -12,9 +12,37 @@ void timeout(int)
     g_scan.stop = true;
 }
 
+void check_down()
+{
+    bool all_down = true;
+    for (t_IP *IP = g_scan.IPs; IP != NULL; IP = IP->next)
+        if (!IP->is_down)
+        {
+            all_down = false;
+            break;
+        }
+
+    if (all_down)
+        error(1, "None of the hosts specified are up. Stopping now.\n");
+}
+
 int main(int argc, char *argv[])
 {
     init(argc, argv);
+
+    if (g_scan.options.ping)
+    {
+        printf("Starting ping...\n");
+        traceroute(false);
+    }
+    check_down();
+
+    if (g_scan.options.traceroute)
+    {
+        printf("Starting traceroute...\n");
+        traceroute(true);
+    }
+    check_down();
 
     g_scan.handle = pcap_open_live(NULL, BUFSIZ, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL);
     struct bpf_program fp = {0};
@@ -23,9 +51,6 @@ int main(int argc, char *argv[])
 
     struct timeval tv;
     gettimeofday(&tv, NULL);
-
-    printf("Starting traceroute...\n");
-    traceroute();
 
     printf("Starting scan...\n");
     if (g_scan.options.thread_count > 1)

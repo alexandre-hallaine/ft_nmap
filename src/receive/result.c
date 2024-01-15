@@ -20,6 +20,8 @@ char *get_service_name(unsigned short port, bool udp)
 void print_result()
 {
     for (t_IP *ip = g_scan.IPs; ip; ip = ip->next) {
+        if (ip->is_down)
+            continue;
         char ip_str[INET6_ADDRSTRLEN];
         if (g_scan.family == AF_INET)
             inet_ntop(AF_INET, &ip->destination.addr.in.sin_addr, ip_str, INET_ADDRSTRLEN);

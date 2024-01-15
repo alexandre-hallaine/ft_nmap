@@ -57,6 +57,10 @@ void *routine(void *arg)
     int sock = create_socket(protocol);
 
     for (t_IP *IP = g_scan.IPs; IP != NULL; IP = IP->next)
+    {
+        if (IP->is_down)
+            continue;
+
         for (int port = 0; port <= USHRT_MAX; port++)
             if (options->ports[port])
             {
@@ -82,6 +86,7 @@ void *routine(void *arg)
                 if (sendto(sock, &packet, packet_size, 0, &IP->destination.addr.addr, IP->destination.addrlen) == -1)
                     error(1, "sendto: %s\n", strerror(errno));
             }
+    }
 
     close(sock);
     free(arg);

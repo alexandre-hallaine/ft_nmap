@@ -73,6 +73,7 @@ typedef struct
     t_addrinfo destination;
     t_status status[TECHNIQUE_COUNT][USHRT_MAX + 1]; // status of each port
     void *next;
+    bool is_down;
 } t_IP;
 
 typedef struct {

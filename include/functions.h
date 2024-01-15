@@ -43,6 +43,6 @@ void print_result();
 void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned char *data);
 
 // traceroute.c
-void traceroute();
+void traceroute(bool traceroute);
 
 #endif
