@@ -1,4 +1,6 @@
 #include "functions.h"
+#include "traceroute.h"
+
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>

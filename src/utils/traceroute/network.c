@@ -1,9 +1,9 @@
+#include "traceroute.h"
+#include "functions.h"
+
 #include <string.h>
 #include <errno.h>
 #include <netdb.h>
-
-#include "traceroute.h"
-#include "functions.h"
 
 void generate_socket()
 {
@@ -24,7 +24,10 @@ void generate_socket()
 void update_ttl(unsigned int ttl)
 {
     int ret;
-    g_scan.family == AF_INET ? (ret = setsockopt(g_traceroute.send_sock, SOL_IP, IP_TTL, &ttl, sizeof(ttl))) : (ret = setsockopt(g_traceroute.send_sock, SOL_IPV6, IPV6_UNICAST_HOPS, &ttl, sizeof(ttl)));
+    if (g_scan.family == AF_INET)
+        ret = setsockopt(g_traceroute.send_sock, SOL_IP, IP_TTL, &ttl, sizeof(ttl));
+    else
+        ret = setsockopt(g_traceroute.send_sock, SOL_IPV6, IPV6_UNICAST_HOPS, &ttl, sizeof(ttl));
 
     if (ret < 0)
         error(1, "setsockopt: %s\n", strerror(errno));
