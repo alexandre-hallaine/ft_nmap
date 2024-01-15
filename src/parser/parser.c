@@ -16,7 +16,6 @@ void usage(char *program)
         "\t\t\t\t\tA: ACK, S: SYN, F: FIN, N: NUL, X: XMAS, U: UDP\n"
         "\t-f <file>:\t\t\tscan the specified hosts within the file (<host> not needed)\n"
         "\t-t <threads>:\t\t\tscan with the specified amount of threads (default: 0)\n"
-        "\t-4:\t\t\t\tuse IPv4\n"
         "\t-6:\t\t\t\tuse IPv6\n"
         "\t-u:\t\t\t\tping host before scanning\n"
         "\t-r:\t\t\t\ttraceroute host before scanning\n"
@@ -169,10 +168,6 @@ void flag_parser(unsigned short *index, char *argv[])
         parse_thread(argv[*index]);
         break;
 
-    case '4':
-        g_scan.family = AF_INET;
-        break;
-
     case '6':
         g_scan.family = AF_INET6;
         break;
@@ -202,6 +197,9 @@ void init(int argc, char *argv[])
         error(1, "usage: You need to be root to run this program\n");
 
     sprintf(g_scan.buffer, "Address: ");
+
+    // Set default family to IPv4
+    g_scan.family = AF_INET;
 
     // Parse flags
     unsigned short index;
