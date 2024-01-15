@@ -8,7 +8,7 @@
 
 t_scan g_scan = {0};
 
-void timeout(int)
+void timeout()
 {
     pcap_breakloop(g_scan.handle);
     g_scan.stop = true;
