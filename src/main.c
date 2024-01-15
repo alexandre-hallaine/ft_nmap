@@ -8,7 +8,7 @@
 
 t_scan g_scan = {0};
 
-void timeout(int)
+void timeout()
 {
     pcap_breakloop(g_scan.handle);
     g_scan.stop = true;
@@ -78,9 +78,7 @@ int main(int argc, char *argv[])
                 for (t_technique i = 0; i < TECHNIQUE_COUNT; i++)
                     options->techniques[i] = false;
                 options->techniques[technique] = true;
-                routine(options);
-                sleep(1);
-            }
+                routine(options);            }
         if (g_scan.options.verbose)
             printf("\n");
     }

@@ -14,6 +14,7 @@ char *ft_memcpy(void *dest, const void *src, size_t n);
 char *ft_strchr(const char *s, int c);
 char *ft_bzero(void *str, size_t n);
 int is_number(char *str);
+void ft_usleep(long usec);
 
 // gnl.c
 int get_next_line(int fd, char **line);

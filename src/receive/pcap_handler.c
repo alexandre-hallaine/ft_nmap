@@ -30,7 +30,9 @@ void icmp_analyze(int technique, int port, struct icmphdr *icmp, t_IP *IP) {
     }
 }
 
-void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned char *data) {
+void packet_handler(unsigned char *arg, const struct pcap_pkthdr *pcap_header, const unsigned char *data) {
+    (void) arg;
+    (void) pcap_header;
     // Skip ethernet header
     data += 16;
 

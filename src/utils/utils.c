@@ -137,3 +137,18 @@ int is_number(char *str)
             return 0;
     return 1;
 }
+
+void ft_usleep(long usec) {
+    struct timeval start, current;
+
+    gettimeofday(&start, NULL);
+    long end = start.tv_usec + usec;
+
+    do {
+        gettimeofday(&current, NULL);
+        if (current.tv_usec < start.tv_usec) {
+            current.tv_usec += 1000000;
+            current.tv_sec -= 1;
+        }
+    } while (current.tv_sec < start.tv_sec || (current.tv_sec == start.tv_sec && current.tv_usec < end));
+}
