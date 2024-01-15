@@ -35,7 +35,7 @@ t_addr get_interface(int family)
                 char ip[INET6_ADDRSTRLEN] = {0};
                 inet_ntop(family, family == AF_INET ? (void *)&addr.in.sin_addr : (void *)&addr.in6.sin6_addr, ip, sizeof(ip));
                 char buffer[BUFSIZ] = {0};
-                sprintf(buffer, "Interface: %s (%s)\n", tmp->ifa_name, ip);
+                sprintf(buffer, "Interface: %s(%s)\n", tmp->ifa_name, ip);
                 strcat(g_scan.buffer, buffer);
             }
 
@@ -51,7 +51,7 @@ t_addr get_interface(int family)
 t_addrinfo get_info(char *host)
 {
     // getting the address info of the host with the canonname (the name of the host eg: google.com)
-    struct addrinfo *res, hints = {.ai_flags = AI_CANONNAME};
+    struct addrinfo *res, hints = {.ai_flags = AI_CANONNAME, .ai_family = g_scan.family};
     if (getaddrinfo(host, NULL, &hints, &res) != 0)
         error(1, "getaddrinfo: %s\n", gai_strerror(errno));
 
@@ -65,14 +65,12 @@ t_addrinfo get_info(char *host)
         error(1, "get_info: unknown address family\n");
     if (g_scan.family == 0)
         g_scan.family = res->ai_family;
-    else if (g_scan.family != res->ai_family)
-        error(1, "get_info: all addresses must be of the same family\n");
 
     char name[NI_MAXHOST] = {0};
     if (strcmp(res->ai_canonname, ip) != 0)
-        sprintf(name, "%s (%s), ", res->ai_canonname, ip);
+        sprintf(name, "%s(%s) ", res->ai_canonname, ip);
     else
-        sprintf(name, "%s, ", ip);
+        sprintf(name, "%s ", ip);
     strcat(g_scan.buffer, name);
 
     t_addrinfo addr = { .addrlen = res->ai_addrlen };

@@ -15,7 +15,12 @@ void usage(char *program)
         "\t-s <techniques>:\t\tscan with specified techniques (default: ASFNXU)\n"
         "\t\t\t\t\tA: ACK, S: SYN, F: FIN, N: NUL, X: XMAS, U: UDP\n"
         "\t-f <file>:\t\t\tscan the specified file (host not needed)\n"
-        "\t-t <threads>:\t\t\tscan with specified threads (default: 0)\n", program);
+        "\t-t <threads>:\t\t\tscan with specified threads (default: 0)\n"
+        "\t-4:\t\t\t\tuse IPv4\n"
+        "\t-6:\t\t\t\tuse IPv6\n"
+        "\t-u:\t\t\t\tcheck if the host is up\n"
+        "\t-r:\t\t\t\tget route to host\n"
+        , program);
 
     error(1, NULL);
 }
@@ -133,36 +138,56 @@ void parse_file(char *file)
 void flag_parser(unsigned short *index, char *argv[])
 {
     char flag = argv[*index][1];
-    char flags[] = "psft";
 
-    if (flag == 'h')
+    if (flag && ft_strchr("psft", flag)) // If the flag is followed by the argument
+    {
+        (*index)++;
+        if (argv[*index] == NULL)
+            usage(argv[0]);
+    }
+
+    switch (flag)
+    {
+    case 'p':
+        parse_port_range(argv[*index]);
+        break;
+
+    case 's':
+        parse_technique(argv[*index]);
+        break;
+
+    case 'f':
+        parse_file(argv[*index]);
+        break;
+
+    case 't':
+        parse_thread(argv[*index]);
+        break;
+
+    case '4':
+        g_scan.family = AF_INET;
+        break;
+
+    case '6':
+        g_scan.family = AF_INET6;
+        break;
+
+    case 'u':
+        g_scan.options.ping = true;
+        break;
+
+    case 'r':
+        g_scan.options.traceroute = true;
+        break;
+
+    case 'h':
         usage(argv[0]);
+        break;
 
-    if (flag && ft_strchr(flags, flag) == NULL)
+    default:
         error(2, "usage: %s: invalid option\n", argv[*index]);
-
-    (*index)++;
-    if (argv[*index] == NULL)
-        usage(argv[0]);
-    else
-        switch (flag)
-        {
-        case 'p':
-            parse_port_range(argv[*index]);
-            break;
-
-        case 's':
-            parse_technique(argv[*index]);
-            break;
-
-        case 'f':
-            parse_file(argv[*index]);
-            break;
-
-        case 't':
-            parse_thread(argv[*index]);
-            break;
-        }
+        return;
+    }
 }
 
 void init(int argc, char *argv[])

@@ -88,6 +88,8 @@ typedef struct
     int ports_count;
 
     unsigned short thread_count;
+    bool ping;
+    bool traceroute;
 } t_options;
 
 typedef union
