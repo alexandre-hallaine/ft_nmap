@@ -52,7 +52,7 @@ t_addrinfo get_info(char *host)
 {
     // getting the address info of the host with the canonname (the name of the host eg: google.com)
     struct addrinfo *res, hints = {.ai_flags = AI_CANONNAME, .ai_family = g_scan.family};
-    if (getaddrinfo(host, NULL, &hints, &res) != 0)
+    if ((errno = getaddrinfo(host, NULL, &hints, &res)) != 0)
         error(1, "getaddrinfo: %s\n", gai_strerror(errno));
 
     // check if it is right (we only want ipv4 or ipv6)

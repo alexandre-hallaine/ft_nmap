@@ -23,6 +23,11 @@ void icmp_analyze(int technique, int port, struct icmphdr *icmp, t_IP *IP) {
         IP->status[technique][port] = CLOSED;
     else
         IP->status[technique][port] = FILTERED;
+
+    if (g_scan.options.verbose) {
+        printf("%s: port %d is ", get_technique_name(technique), port);
+        print_status_name(IP->status[technique][port]);
+    }
 }
 
 void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned char *data) {
@@ -43,24 +48,31 @@ void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned 
     if (!IP)
         return;
 
+    int technique;
+    int port;
     if (protocol == IPPROTO_ICMP) {
         data += sizeof(struct icmphdr) + ip_size; //go to old packet
         protocol = g_scan.family == AF_INET ? ((struct iphdr *) data)->protocol
                                                         : ((struct ip6_hdr *) data)->ip6_nxt;
 
         t_packet *packet_old = (t_packet *) (data + ip_size);
-        int technique = protocol == IPPROTO_TCP ? ntohs(packet_old->tcp.source) : ntohs(packet_old->udp.source);
-        int port = protocol == IPPROTO_TCP ? ntohs(packet_old->tcp.dest) : ntohs(packet_old->udp.dest);
+        technique = protocol == IPPROTO_TCP ? ntohs(packet_old->tcp.source) : ntohs(packet_old->udp.source);
+        port = protocol == IPPROTO_TCP ? ntohs(packet_old->tcp.dest) : ntohs(packet_old->udp.dest);
         icmp_analyze(technique, port, &packet->icmp, IP);
     } else {
-        int technique = protocol == IPPROTO_TCP ? ntohs(packet->tcp.dest) : ntohs(packet->udp.dest);
-        int port = protocol == IPPROTO_TCP ? ntohs(packet->tcp.source) : ntohs(packet->udp.source);
+        technique = protocol == IPPROTO_TCP ? ntohs(packet->tcp.dest) : ntohs(packet->udp.dest);
+        port = protocol == IPPROTO_TCP ? ntohs(packet->tcp.source) : ntohs(packet->udp.source);
 
         if (technique == UDP || packet->tcp.syn)
             IP->status[technique][port] = OPEN;
         else if (packet->tcp.rst)
             IP->status[technique][port] = technique == ACK ? UNFILTERED : CLOSED;
     }
+
     // If there is a response, reset the alarm to 5 seconds
     alarm(5);
+    if (g_scan.options.verbose) {
+        printf("%s: port %d is ", get_technique_name(technique), port);
+        print_status_name(IP->status[technique][port]);
+    }
 }

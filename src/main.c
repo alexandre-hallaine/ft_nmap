@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    printf("Starting scan...\n");
+    printf("Sending packets...\n");
     if (g_scan.options.thread_count > 1)
         thread_send();
     else {

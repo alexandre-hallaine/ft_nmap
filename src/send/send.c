@@ -141,7 +141,8 @@ void thread_send() {
                         amount--;
                     }
 
-//                printf("Sending packet... (id: %d | technique: %s | amount of ports: %d)\n", id, get_technique_name(technique), threads[thread_no]);
+                if (g_scan.options.verbose)
+                    printf("(thread id: %d | technique: %s | amount of ports: %d)\n", id, get_technique_name(technique), threads[thread_no]);
                 if (pthread_create(&thread[id++], NULL, routine, range) != 0)
                     error(1, "pthread_create: %s\n", strerror(errno));
             }
