@@ -29,6 +29,7 @@ void init(int argc, char *argv[]);
 t_packet create_packet(t_technique technique);
 
 // checksum.c
+unsigned short checksum(unsigned short *addr, size_t len);
 void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size, t_IP *IP);
 
 // send.c
@@ -40,5 +41,8 @@ void print_result();
 
 // receive.c
 void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned char *data);
+
+// traceroute.c
+void traceroute();
 
 #endif

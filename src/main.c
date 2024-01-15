@@ -24,6 +24,9 @@ int main(int argc, char *argv[])
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
+    printf("Starting traceroute...\n");
+    traceroute();
+
     printf("Starting scan...\n");
     if (g_scan.options.thread_count > 1)
         thread_send();

@@ -6,6 +6,12 @@
 
 #define LIST_SIZE 9
 
+typedef	struct
+{
+    char let;
+    void *next;
+} t_gnl;
+
 int get_next_line(int fd, char **line)
 {
     t_gnl *list = calloc(1, LIST_SIZE);
