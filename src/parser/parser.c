@@ -12,15 +12,15 @@ void usage(char *program)
         "options:\n"
         "\t-h:\t\t\t\tdisplay this help\n"
         "\t-p <ports>:\t\t\tscan the specified ports (default: 1-1024, eg. 1-5,80)\n"
-        "\t-s <techniques>:\t\tscan with specified techniques (default: ASFNXU)\n"
+        "\t-s <techniques>:\t\tscan with the specified techniques (default: ASFNXU)\n"
         "\t\t\t\t\tA: ACK, S: SYN, F: FIN, N: NUL, X: XMAS, U: UDP\n"
-        "\t-f <file>:\t\t\tscan the specified file (host not needed)\n"
-        "\t-t <threads>:\t\t\tscan with specified threads (default: 0)\n"
+        "\t-f <file>:\t\t\tscan the specified hosts within the file (<host> not needed)\n"
+        "\t-t <threads>:\t\t\tscan with the specified amount of threads (default: 0)\n"
         "\t-4:\t\t\t\tuse IPv4\n"
         "\t-6:\t\t\t\tuse IPv6\n"
-        "\t-u:\t\t\t\tcheck if the host is up\n"
-        "\t-r:\t\t\t\tget route to host\n"
-        "\t-v:\t\t\t\tverbose mode\n"
+        "\t-u:\t\t\t\tping host before scanning\n"
+        "\t-r:\t\t\t\ttraceroute host before scanning\n"
+        "\t-v:\t\t\t\tvery verbose mode\n"
         , program);
 
     error(1, NULL);

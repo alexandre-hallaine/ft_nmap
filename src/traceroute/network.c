@@ -13,7 +13,7 @@ void generate_socket()
     if (g_traceroute.send_sock < 0)
         error(1, "socket: %s\n", strerror(errno));
 
-    struct timeval tv = {0, 200000};
+    struct timeval tv = {0, 300000};
     setsockopt(g_traceroute.recv_sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0 ? error(1, "setsockopt: %s\n", strerror(errno)) : 0;
 
     int on = 1;
