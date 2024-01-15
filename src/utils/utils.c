@@ -167,3 +167,12 @@ void ft_usleep(long usec) {
         }
     } while (current.tv_sec < start.tv_sec || (current.tv_sec == start.tv_sec && current.tv_usec < end));
 }
+
+char *ft_calloc(size_t count, size_t size)
+{
+    char *ptr = malloc(count * size);
+    if (!ptr)
+        return NULL;
+    ft_bzero(ptr, count * size);
+    return ptr;
+}

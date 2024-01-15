@@ -15,6 +15,7 @@ char *ft_strchr(const char *s, int c);
 char *ft_bzero(void *str, size_t n);
 int is_number(char *str);
 void ft_usleep(long usec);
+char *ft_calloc(size_t count, size_t size);
 
 // gnl.c
 int get_next_line(int fd, char **line);
