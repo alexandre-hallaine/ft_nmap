@@ -20,6 +20,7 @@ void usage(char *program)
         "\t-6:\t\t\t\tuse IPv6\n"
         "\t-u:\t\t\t\tcheck if the host is up\n"
         "\t-r:\t\t\t\tget route to host\n"
+        "\t-v:\t\t\t\tverbose mode\n"
         , program);
 
     error(1, NULL);
@@ -148,6 +149,10 @@ void flag_parser(unsigned short *index, char *argv[])
 
     switch (flag)
     {
+    case 'h':
+        usage(argv[0]);
+        break;
+
     case 'p':
         parse_port_range(argv[*index]);
         break;
@@ -180,8 +185,8 @@ void flag_parser(unsigned short *index, char *argv[])
         g_scan.options.traceroute = true;
         break;
 
-    case 'h':
-        usage(argv[0]);
+    case 'v':
+        g_scan.options.verbose = true;
         break;
 
     default:
@@ -213,9 +218,9 @@ void init(int argc, char *argv[])
     // If no port range specified, scan 1-1024
     if (g_scan.options.ports_count == 0)
     {
-        for (unsigned short i = 1; i <= 1024; i++)
+        for (unsigned short i = PORT_MIN; i <= PORT_MAX; i++)
             g_scan.options.ports[i] = true;
-        g_scan.options.ports_count = 1024;
+        g_scan.options.ports_count = PORT_MAX - PORT_MIN + 1;
     }
 
     // If the amount of threads is less than the amount of techniques, use the amount of techniques

@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     printf("Starting traceroute...\n");
     traceroute();
 
-    printf("Starting scan...\n");
+    printf("Sending packets...\n");
     if (g_scan.options.thread_count > 1)
         thread_send();
     else {

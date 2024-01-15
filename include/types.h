@@ -90,6 +90,7 @@ typedef struct
     unsigned short thread_count;
     bool ping;
     bool traceroute;
+    bool verbose;
 } t_options;
 
 typedef union
