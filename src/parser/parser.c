@@ -130,7 +130,10 @@ void parse_file(char *file)
 
     // Read file line by line and add IP to list
     while (get_next_line(fp->_fileno, &line) > 0)
+    {
+        if (line[0] != '\0')
         add_IP(get_info(line));
+    }
 
     fclose(fp);
 }
