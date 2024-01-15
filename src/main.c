@@ -59,8 +59,11 @@ int main(int argc, char *argv[])
         for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
             if (g_scan.options.techniques[technique])
             {
-                printf("%s... ", get_technique_name(technique));
-                fflush(stdout);
+                if (g_scan.options.verbose)
+                {
+                    printf("%s... ", get_technique_name(technique));
+                    fflush(stdout);
+                }
 
                 t_options *options = malloc(sizeof(t_options));
                 ft_memcpy(options, &g_scan.options, sizeof(t_options));
@@ -70,7 +73,8 @@ int main(int argc, char *argv[])
                 routine(options);
                 sleep(1);
             }
-        printf("\n");
+        if (g_scan.options.verbose)
+            printf("\n");
     }
 
     printf("Waiting for responses...\n");

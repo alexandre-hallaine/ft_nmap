@@ -71,8 +71,4 @@ void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned 
 
     // If there is a response, reset the alarm to 5 seconds
     alarm(5);
-    if (g_scan.options.verbose) {
-        printf("%s: port %d is ", get_technique_name(technique), port);
-        print_status_name(IP->status[technique][port]);
-    }
 }

@@ -19,8 +19,10 @@ void update_addr(struct sockaddr_storage *dst, struct sockaddr_storage *src, int
     char ip_str[INET6_ADDRSTRLEN];
     family == AF_INET ? inet_ntop(AF_INET, &((struct sockaddr_in *)src)->sin_addr, ip_str, INET_ADDRSTRLEN) : inet_ntop(AF_INET6, &((struct sockaddr_in6 *)src)->sin6_addr, ip_str, INET6_ADDRSTRLEN);
 
-    //struct hostent *host = family == AF_INET ? gethostbyaddr((char *)&((struct sockaddr_in *)src)->sin_addr, sizeof(struct in_addr), AF_INET) : gethostbyaddr((char *)&((struct sockaddr_in6 *)src)->sin6_addr, sizeof(struct in6_addr), AF_INET6);
-    // printf(" %s (%s)", host ? host->h_name : ip_str, ip_str);
+    if (g_scan.options.verbose) {
+        struct hostent *host = family == AF_INET ? gethostbyaddr((char *)&((struct sockaddr_in *)src)->sin_addr, sizeof(struct in_addr), AF_INET) : gethostbyaddr((char *)&((struct sockaddr_in6 *)src)->sin6_addr, sizeof(struct in6_addr), AF_INET6);
+         printf(" %s (%s)", host ? host->h_name : ip_str, ip_str);
+    }
 }
 
 int check_packet_icmp(char *data)
@@ -74,7 +76,8 @@ int recv_packet(struct sockaddr_storage *from, struct timeval last)
 
     if (recvmsg(g_traceroute.recv_sock, &msg, 0) < 0)
     {
-        // printf(" *\n");
+        if (g_scan.options.verbose)
+            printf(" *\n");
         return 0;
     }
 
@@ -96,6 +99,7 @@ int recv_packet(struct sockaddr_storage *from, struct timeval last)
         update_addr(from, &addr, g_scan.family);
 
     (void)last;
-    // printf("  %.3f ms\n", (time.tv_sec - last.tv_sec) * 1000.0 + (time.tv_usec - last.tv_usec) / 1000.0);
+    if (g_scan.options.verbose)
+     printf("  %.3f ms\n", (time.tv_sec - last.tv_sec) * 1000.0 + (time.tv_usec - last.tv_usec) / 1000.0);
     return ret;
 }

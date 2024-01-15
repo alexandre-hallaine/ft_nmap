@@ -32,6 +32,7 @@ void print_result()
         for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
             if (g_scan.options.techniques[technique]) {
                 unsigned short amount[UNFILTERED + 1] = {0};
+                t_status default_status = UNSCANNED;
 
                 printf("%s", get_technique_name(technique));
                 // Calculate how many times each status appears for this technique
@@ -39,9 +40,16 @@ void print_result()
                     if (g_scan.options.ports[i])
                         amount[ip->status[technique][i]]++;
 
+                //get the default status
+                if (g_scan.options.verbose)
+                    for (t_status type = 0; type < UNFILTERED + 1; type++)
+                        if (amount[type] > amount[default_status])
+                            default_status = type;
+
                 int printed = 0;
                 for (t_status type = 0; type < UNFILTERED + 1; type++)
-                    if (amount[type] > 30) {
+                    if ((default_status == UNSCANNED && amount[type] > 30)
+                    || (default_status != UNSCANNED && type == default_status)) {
                         printf("\t%d ports on state ", amount[type]);
                         print_status_name(type);
 

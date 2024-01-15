@@ -12,7 +12,8 @@ t_traceroute g_traceroute = {.sequence = 42, .datalen = 40};
 int scan(int ttl, t_IP *IP, char buffer[USHRT_MAX], bool traceroute)
 {
     update_ttl(ttl);
-    // printf("%2d ", ttl);
+    if (g_scan.options.verbose)
+        printf("%2d ", ttl);
 
     struct sockaddr_storage from = {0};
     ++g_traceroute.sequence;

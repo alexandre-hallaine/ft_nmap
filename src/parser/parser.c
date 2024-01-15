@@ -190,6 +190,43 @@ void flag_parser(unsigned short *index, char *argv[])
     }
 }
 
+void print_stats()
+{
+    printf("Techniques: ");
+    for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
+        if (g_scan.options.techniques[i])
+            printf("%s ", get_technique_name(i));
+    printf("\n");
+
+    printf("Thread count: %d\n", g_scan.options.thread_count);
+
+    printf("Port count: ");
+    if (!g_scan.options.verbose)
+        printf("%d\n", g_scan.options.ports_count);
+    else
+    {
+        bool first = true;
+        int amount = 0;
+        for (int i = 0; i <= USHRT_MAX; i++)
+            if (g_scan.options.ports[i])
+                amount++;
+            else if (amount != 0) {
+                if (first)
+                    first = false;
+                else
+                    printf(",");
+                if (amount == 1)
+                    printf("%d", i - 1);
+                else if (amount > 1)
+                    printf("%d-%d", i - amount, i - 1);
+                amount = 0;
+            }
+        printf("\n");
+    }
+
+    printf("\n");
+}
+
 void init(int argc, char *argv[])
 {
     // Exit if not root
@@ -221,13 +258,6 @@ void init(int argc, char *argv[])
         g_scan.options.ports_count = PORT_MAX - PORT_MIN + 1;
     }
 
-    // If the amount of threads is less than the amount of techniques, use the amount of techniques
-    // We do this because we assume at least one thread per technique (if threads are used)
-    if (g_scan.options.thread_count != 0 && g_scan.options.thread_count < g_scan.options.techniques_count) {
-        g_scan.options.thread_count = g_scan.options.techniques_count;
-        printf("Warning: Not enough threads, using %d instead\n", g_scan.options.techniques_count);
-    }
-
     // If -f is not specified, the last argument is the host
     if (g_scan.IPs == NULL)
     {
@@ -241,13 +271,12 @@ void init(int argc, char *argv[])
     g_scan.interface = get_interface(g_scan.family);
     printf("%s", g_scan.buffer);
 
-    printf("Techniques: ");
-    for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-        if (g_scan.options.techniques[i])
-            printf("%s ", get_technique_name(i));
-    printf("\n");
+    // If the amount of threads is less than the amount of techniques, use the amount of techniques
+    // We do this because we assume at least one thread per technique (if threads are used)
+    if (g_scan.options.thread_count != 0 && g_scan.options.thread_count < g_scan.options.techniques_count) {
+        g_scan.options.thread_count = g_scan.options.techniques_count;
+        fprintf(stderr, "Warning: Not enough threads, using %d instead\n\n", g_scan.options.techniques_count);
+    }
 
-    printf("Threads: %d\n", g_scan.options.thread_count);
-
-    printf("\n");
+    print_stats();
 }
