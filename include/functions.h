@@ -4,6 +4,8 @@
 #include "types.h"
 
 // utils.c
+char *ft_bzero(void *str, size_t n);
+void *ft_calloc(size_t count, size_t size);
 void error(int code, char *fmt, ...);
 char *get_technique_name(t_technique technique);
 void print_status_name(t_status status);
@@ -12,10 +14,8 @@ void free_IPs();
 int _ceil(float num);
 char *ft_memcpy(void *dest, const void *src, size_t n);
 char *ft_strchr(const char *s, int c);
-char *ft_bzero(void *str, size_t n);
 int is_number(char *str);
 void ft_usleep(long usec);
-char *ft_calloc(size_t count, size_t size);
 
 // gnl.c
 int get_next_line(int fd, char **line);

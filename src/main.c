@@ -73,7 +73,9 @@ int main(int argc, char *argv[])
                     fflush(stdout);
                 }
 
-                t_options *options = malloc(sizeof(t_options));
+                t_options *options = ft_calloc(1, sizeof(t_options));
+                if (!options)
+                    error(1, "main: ft_calloc failed\n");
                 ft_memcpy(options, &g_scan.options, sizeof(t_options));
                 for (t_technique i = 0; i < TECHNIQUE_COUNT; i++)
                     options->techniques[i] = false;
@@ -103,4 +105,5 @@ int main(int argc, char *argv[])
     pcap_close(g_scan.handle);
     print_result();
     free_IPs();
+    free(fp.bf_insns);
 }

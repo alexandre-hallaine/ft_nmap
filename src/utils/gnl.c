@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define LIST_SIZE 9
-
 typedef	struct
 {
     char let;
@@ -14,9 +12,9 @@ typedef	struct
 
 int get_next_line(int fd, char **line)
 {
-    t_gnl *list = calloc(1, LIST_SIZE);
+    t_gnl *list = ft_calloc(1, sizeof(t_gnl));
     if (!list)
-        error(1, "get_next_line: malloc failed\n");
+        error(1, "get_next_line: ft_calloc failed\n");
 
     t_gnl *begin = list;
     int ret;
@@ -25,13 +23,15 @@ int get_next_line(int fd, char **line)
 
     for (size = 1; (ret = read(fd, &list->let, 1)) > 0 && list->let != '\n'; size++)
     {
-        list->next = calloc(1, LIST_SIZE);
+        list->next = ft_calloc(1, sizeof(t_gnl));
+        if (!list->next)
+            error(1, "get_next_line: ft_calloc failed\n");
         list = list->next;
     }
 
-    line[0] = malloc(size);
+    line[0] = ft_calloc(1, size);
     if (!line[0])
-        error(1, "get_next_line: malloc failed\n");
+        error(1, "get_next_line: ft_calloc failed\n");
 
     list = begin;
     for (loop = 0; list; loop++, begin = list)

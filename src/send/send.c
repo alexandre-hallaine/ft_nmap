@@ -5,8 +5,8 @@
 #include <netinet/ip.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <malloc.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 int create_socket(int protocol)
 {
@@ -125,7 +125,9 @@ void thread_send() {
 
             int current = 0;
             for (int thread_no = 0; thread_no < chunks[technique]; thread_no++) {
-                t_options *range = malloc(sizeof(t_options));
+                t_options *range = ft_calloc(1, sizeof(t_options));
+                if (!range)
+                    error(1, "thread_send: ft_calloc failed\n");
                 int amount = threads[thread_no];
 
                 for (int i = 0; i < TECHNIQUE_COUNT; i++)

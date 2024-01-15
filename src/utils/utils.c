@@ -5,6 +5,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+char *ft_bzero(void *str, size_t n)
+{
+    char *s = str;
+    while (n--)
+        *s++ = 0;
+    return str;
+}
+
+void *ft_calloc(size_t count, size_t size)
+{
+    void *ptr = malloc(count * size);
+    if (!ptr)
+        return NULL;
+    ft_bzero(ptr, count * size);
+    return ptr;
+}
+
 void free_IPs()
 {
     t_IP *head = g_scan.IPs;
@@ -46,10 +63,9 @@ void add_IP(t_addrinfo addr) {
             break;
     }
 
-    new_node = malloc(sizeof(t_IP));
-
+    new_node = ft_calloc(1, sizeof(t_IP));
     if (!new_node)
-        error(1, "add_to_list: malloc failed\n");
+        error(1, "add_to_list: ft_calloc failed\n");
 
     new_node->destination = addr;
     new_node->next = NULL;
@@ -137,14 +153,6 @@ char *ft_strchr(const char *s, int c)
     return NULL;
 }
 
-char *ft_bzero(void *str, size_t n)
-{
-    char *s = str;
-    while (n--)
-        *s++ = 0;
-    return str;
-}
-
 int is_number(char *str)
 {
     for (unsigned char i = 0; i < strlen(str); i++)
@@ -166,13 +174,4 @@ void ft_usleep(long usec) {
             current.tv_sec -= 1;
         }
     } while (current.tv_sec < start.tv_sec || (current.tv_sec == start.tv_sec && current.tv_usec < end));
-}
-
-char *ft_calloc(size_t count, size_t size)
-{
-    char *ptr = malloc(count * size);
-    if (!ptr)
-        return NULL;
-    ft_bzero(ptr, count * size);
-    return ptr;
 }

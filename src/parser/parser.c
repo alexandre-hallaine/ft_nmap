@@ -134,8 +134,10 @@ void parse_file(char *file)
     while (get_next_line(fp->_fileno, &line) > 0)
     {
         if (line[0] != '\0')
-        add_IP(get_info(line));
+            add_IP(get_info(line));
+        free(line);
     }
+    free(line);
 
     fclose(fp);
 }
