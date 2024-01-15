@@ -34,9 +34,7 @@ t_addr get_interface(int family)
             {
                 char ip[INET6_ADDRSTRLEN] = {0};
                 inet_ntop(family, family == AF_INET ? (void *)&addr.in.sin_addr : (void *)&addr.in6.sin6_addr, ip, sizeof(ip));
-                char buffer[BUFSIZ] = {0};
-                sprintf(buffer, "Interface: %s(%s)\n", tmp->ifa_name, ip);
-                strcat(g_scan.buffer, buffer);
+                printf("Interface: %s(%s)\n", tmp->ifa_name, ip);
             }
 
             break;
@@ -66,14 +64,12 @@ t_addrinfo get_info(char *host)
     if (g_scan.family == 0)
         g_scan.family = res->ai_family;
 
-    char name[NI_MAXHOST] = {0};
-    if (strcmp(res->ai_canonname, ip) != 0)
-        sprintf(name, "%s(%s) ", res->ai_canonname, ip);
-    else
-        sprintf(name, "%s ", ip);
-    strcat(g_scan.buffer, name);
-
     t_addrinfo addr = { .addrlen = res->ai_addrlen };
+    if (strcmp(res->ai_canonname, ip) != 0)
+        sprintf(addr.name, "%s(%s)", res->ai_canonname, ip);
+    else
+        sprintf(addr.name, "%s", ip);
+
     // copying the address bytes to avoid losing information
     ft_memcpy(&addr.addr, res->ai_addr, res->ai_addrlen);
 

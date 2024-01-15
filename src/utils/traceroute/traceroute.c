@@ -1,57 +1,67 @@
+#include "functions.h"
+#include "traceroute.h"
+
 #include <stdio.h>
-#include <sys/time.h>
+#include <time.h>
 #include <unistd.h>
 #include <limits.h>
 #include <netinet/icmp6.h>
 
-#include "functions.h"
-#include "traceroute.h"
-
 t_traceroute g_traceroute = { .sequence = 0, .datalen = 40 };
 
-int scan(int ttl, t_IP *IP, char buffer[USHRT_MAX])
+int scan(int ttl, char buffer[USHRT_MAX])
 {
     update_ttl(ttl);
-    if (g_scan.options.verbose)
-        printf("%2d ", ttl);
+    if (g_scan.options.verbose == 2)
+        printf("%d ", ttl);
 
-    struct sockaddr_storage from = {0};
     struct icmphdr *icmp = (struct icmphdr *)buffer;
 
     ++g_traceroute.sequence;
     icmp->checksum -= htons(g_traceroute.sequence) - icmp->un.echo.sequence;
     icmp->un.echo.sequence = htons(g_traceroute.sequence);
 
-    sendto(g_traceroute.socket, buffer, g_traceroute.datalen, 0, &IP->destination.addr.addr, IP->destination.addrlen);
+    sendto(g_traceroute.socket, buffer, g_traceroute.datalen, 0, &g_traceroute.current_IP->destination.addr.addr, g_traceroute.current_IP->destination.addrlen);
 
     struct timeval time;
     gettimeofday(&time, NULL);
 
     int code;
     do
-        code = recv_packet(&from, time);
+        code = recv_packet(time);
     while (code < 0);
-
-    char ip[INET6_ADDRSTRLEN];
-    if (g_scan.family == AF_INET)
-        inet_ntop(g_scan.family, &IP->destination.addr.in.sin_addr, ip, sizeof(ip));
-    else if (g_scan.family == AF_INET6)
-        inet_ntop(g_scan.family, &IP->destination.addr.in6.sin6_addr, ip, sizeof(ip));
 
     if (g_traceroute.type == TRACEROUTE)
     {
         if (code > 0)
-            printf("Host %s has %d hops\n", ip, ttl);
+            printf("Host %s has %d hops\n", g_traceroute.current_IP->destination.name, ttl);
     }
     else if (g_traceroute.type == PING)
     {
         if (code == 0)
         {
-            printf("Host %s is down\n", ip);
-            IP->is_down = true;
+            printf("Host %s is down\n", g_traceroute.current_IP->destination.name);
+            g_traceroute.current_IP->is_down = true;
         }
         else if (code > 0)
-            printf("Host %s is up\n", ip);
+            printf("Host %s is up\n", g_traceroute.current_IP->destination.name);
+    }
+    else if (g_traceroute.type == TIMESTAMP)
+    {
+        if (code == 0)
+            printf("No response from host %s\n", g_traceroute.current_IP->destination.name);
+        else if (code > 0)
+        {
+            struct timeval tv;
+            char buf[BUFSIZ];
+
+            gettimeofday(&tv, NULL);
+            tv.tv_sec -= code / 1000;
+            tv.tv_usec -= (code % 1000) * 1000;
+
+            strftime(buf, sizeof(buf), "%c", localtime(&tv.tv_sec));
+            printf("Host %s up since %s\n", g_traceroute.current_IP->destination.name, buf);
+        }
     }
     return (code);
 }
@@ -80,25 +90,25 @@ void traceroute(t_scan_type type)
     icmp->un.echo.id = htons(4242);
     icmp->checksum = checksum((unsigned short *)buffer, g_traceroute.datalen);
 
-    for (t_IP *IP = g_scan.IPs; IP != NULL; IP = IP->next)
+    for (g_traceroute.current_IP = g_scan.IPs; g_traceroute.current_IP != NULL; g_traceroute.current_IP = g_traceroute.current_IP->next)
         if (type == TRACEROUTE)
         {
             bool got_reply = 0;
             for (unsigned int ttl = 1; ttl <= 64 && !got_reply; ttl++)
-                got_reply = scan(ttl, IP, buffer);
+                got_reply = scan(ttl, buffer);
             if (!got_reply)
             {
                 printf("Host did not reply, max hops reached. Probably down.\n");
-                IP->is_down = true;
+                g_traceroute.current_IP->is_down = true;
             }
         }
         else
         {
             int ttl = 255;
             if (type == PING)
-                scan(ttl, IP, buffer);
+                scan(ttl, buffer);
             else if (type == TIMESTAMP)
-                scan(ttl, IP, buffer);
+                scan(ttl, buffer);
         }
     printf("\n");
 }

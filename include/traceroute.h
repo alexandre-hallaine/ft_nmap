@@ -1,6 +1,8 @@
 #ifndef TRACEROUTE_H
 #define TRACEROUTE_H
 
+#include "types.h"
+
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <stdint.h>
@@ -27,6 +29,7 @@ typedef struct
     unsigned short datalen;
 
     t_scan_type type;
+    t_IP *current_IP;
 } t_traceroute;
 
 extern t_traceroute g_traceroute;
@@ -36,7 +39,7 @@ void generate_socket();
 void update_ttl(unsigned int ttl);
 
 // recv.c
-int recv_packet(struct sockaddr_storage *from, struct timeval last);
+int recv_packet(struct timeval last);
 
 // traceroute.c
 void traceroute(t_scan_type type);

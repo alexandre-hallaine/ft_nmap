@@ -6,7 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
-void icmp_analyze(int technique, int port, struct icmphdr *icmp, t_IP *IP) {
+void icmp_analyze(int technique, int port, struct icmphdr *icmp, t_IP *IP)
+{
     // Move to the pcap filter if possible
     if (icmp->type != ICMP_UNREACH)
         return;
@@ -23,22 +24,18 @@ void icmp_analyze(int technique, int port, struct icmphdr *icmp, t_IP *IP) {
         IP->status[technique][port] = CLOSED;
     else
         IP->status[technique][port] = FILTERED;
-
-    if (g_scan.options.verbose) {
-        printf("%s: port %d is ", get_technique_name(technique), port);
-        print_status_name(IP->status[technique][port]);
-    }
 }
 
-void packet_handler(unsigned char *arg, const struct pcap_pkthdr *pcap_header, const unsigned char *data) {
-    (void) arg;
-    (void) pcap_header;
+void packet_handler(unsigned char *arg, const struct pcap_pkthdr *pcap_header, const unsigned char *data)
+{
+    (void)arg;
+    (void)pcap_header;
     // Skip ethernet header
     data += 16;
 
     int ip_size = g_scan.family == AF_INET ? sizeof(struct iphdr) : sizeof(struct ip6_hdr);
-    t_packet *header = (t_packet *) data;
-    t_packet *packet = (t_packet *) (data + ip_size);
+    t_packet *header = (t_packet *)data;
+    t_packet *packet = (t_packet *)(data + ip_size);
     uint8_t protocol = g_scan.family == AF_INET ? header->ipv4.protocol : header->ipv6.ip6_nxt;
 
     t_IP *IP;
@@ -52,16 +49,19 @@ void packet_handler(unsigned char *arg, const struct pcap_pkthdr *pcap_header, c
 
     int technique;
     int port;
-    if (protocol == IPPROTO_ICMP) {
-        data += sizeof(struct icmphdr) + ip_size; //go to old packet
-        protocol = g_scan.family == AF_INET ? ((struct iphdr *) data)->protocol
-                                                        : ((struct ip6_hdr *) data)->ip6_nxt;
+    if (protocol == IPPROTO_ICMP)
+    {
+        data += sizeof(struct icmphdr) + ip_size; // go to old packet
+        protocol = g_scan.family == AF_INET ? ((struct iphdr *)data)->protocol
+                                            : ((struct ip6_hdr *)data)->ip6_nxt;
 
-        t_packet *packet_old = (t_packet *) (data + ip_size);
+        t_packet *packet_old = (t_packet *)(data + ip_size);
         technique = protocol == IPPROTO_TCP ? ntohs(packet_old->tcp.source) : ntohs(packet_old->udp.source);
         port = protocol == IPPROTO_TCP ? ntohs(packet_old->tcp.dest) : ntohs(packet_old->udp.dest);
         icmp_analyze(technique, port, &packet->icmp, IP);
-    } else {
+    }
+    else
+    {
         technique = protocol == IPPROTO_TCP ? ntohs(packet->tcp.dest) : ntohs(packet->udp.dest);
         port = protocol == IPPROTO_TCP ? ntohs(packet->tcp.source) : ntohs(packet->udp.source);
 
@@ -73,4 +73,10 @@ void packet_handler(unsigned char *arg, const struct pcap_pkthdr *pcap_header, c
 
     // If there is a response, reset the alarm to 5 seconds
     alarm(5);
+
+    if (g_scan.options.verbose)
+    {
+        static int amount = 0;
+        printf("\rReceived %d out of %d. Waiting for additionnal responses...", ++amount, g_scan.options.ports_count * g_scan.options.techniques_count * g_scan.IPs_count);
+    }
 }

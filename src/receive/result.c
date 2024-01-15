@@ -22,13 +22,8 @@ void print_result()
     for (t_IP *ip = g_scan.IPs; ip; ip = ip->next) {
         if (ip->is_down)
             continue;
-        char ip_str[INET6_ADDRSTRLEN];
-        if (g_scan.family == AF_INET)
-            inet_ntop(AF_INET, &ip->destination.addr.in.sin_addr, ip_str, INET_ADDRSTRLEN);
-        else
-            inet_ntop(AF_INET6, &ip->destination.addr.in6.sin6_addr, ip_str, INET6_ADDRSTRLEN);
-        printf("\nResults for %s\n", ip_str);
-
+            
+        printf("\nResults for %s\n", ip->destination.name);
         for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
             if (g_scan.options.techniques[technique]) {
                 unsigned short amount[UNFILTERED + 1] = {0};
@@ -41,7 +36,7 @@ void print_result()
                         amount[ip->status[technique][i]]++;
 
                 //get the default status
-                if (g_scan.options.verbose)
+                if (g_scan.options.verbose == 2)
                     for (t_status type = 0; type < UNFILTERED + 1; type++)
                         if (amount[type] > amount[default_status])
                             default_status = type;

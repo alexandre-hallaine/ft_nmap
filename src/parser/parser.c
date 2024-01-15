@@ -19,7 +19,8 @@ void usage(char *program)
         "\t-6:\t\t\t\tuse IPv6\n"
         "\t-u:\t\t\t\tping host before scanning\n"
         "\t-r:\t\t\t\ttraceroute host before scanning\n"
-        "\t-v:\t\t\t\tvery verbose mode\n"
+        "\t-v:\t\t\t\tverbose mode\n"
+        "\t-V:\t\t\t\tvery verbose mode\n"
         "\t-m:\t\t\t\tcheck the uptime of the host\n"
         , program);
 
@@ -185,7 +186,11 @@ void flag_parser(unsigned short *index, char *argv[])
         break;
 
     case 'v':
-        g_scan.options.verbose = true;
+        g_scan.options.verbose = 1;
+        break;
+
+    case 'V':
+        g_scan.options.verbose = 2;
         break;
 
     case 'm':
@@ -200,6 +205,19 @@ void flag_parser(unsigned short *index, char *argv[])
 
 void print_stats()
 {
+    bool first = true;
+
+    printf("Address: ");
+    for (t_IP *ip = g_scan.IPs; ip != NULL; ip = ip->next)
+    {
+        if (first)
+            first = false;
+        else
+            printf(", ");
+        printf("%s", ip->destination.name);
+    }
+    printf("\n");
+
     printf("Techniques: ");
     for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
         if (g_scan.options.techniques[i])
@@ -213,7 +231,7 @@ void print_stats()
         printf("%d\n", g_scan.options.ports_count);
     else
     {
-        bool first = true;
+        first = true;
         int amount = 0;
         for (int i = 0; i <= USHRT_MAX; i++)
             if (g_scan.options.ports[i])
@@ -240,8 +258,6 @@ void init(int argc, char *argv[])
     // Exit if not root
     if (getuid() != 0)
         error(1, "usage: You need to be root to run this program\n");
-
-    sprintf(g_scan.buffer, "Address: ");
 
     // Set default family to IPv4
     g_scan.family = AF_INET;
@@ -273,11 +289,6 @@ void init(int argc, char *argv[])
             usage(argv[0]);
         add_IP(get_info(argv[index]));
     }
-    strcat(g_scan.buffer, "\n");
-
-    // Get interface
-    g_scan.interface = get_interface(g_scan.family);
-    printf("%s", g_scan.buffer);
 
     // If the amount of threads is less than the amount of techniques, use the amount of techniques
     // We do this because we assume at least one thread per technique (if threads are used)
@@ -285,6 +296,9 @@ void init(int argc, char *argv[])
         g_scan.options.thread_count = g_scan.options.techniques_count;
         fprintf(stderr, "Warning: Not enough threads, using %d instead\n\n", g_scan.options.techniques_count);
     }
+
+    // Get interface
+    g_scan.interface = get_interface(g_scan.family);
 
     print_stats();
 }

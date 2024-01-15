@@ -142,7 +142,9 @@ void thread_send() {
                         amount--;
                     }
 
-                if (g_scan.options.verbose)
+                if (g_scan.options.verbose == 1)
+                    printf("\rSending %s packets...\t(%d/%d)", get_technique_name(technique), thread_no + 1, chunks[technique]);
+                else if (g_scan.options.verbose == 2)
                     printf("(thread id: %d | technique: %s | amount of ports: %d)\n", id, get_technique_name(technique), threads[thread_no]);
                 if (pthread_create(&thread[id++], NULL, routine, range) != 0)
                     error(1, "pthread_create: %s\n", strerror(errno));
@@ -151,4 +153,7 @@ void thread_send() {
 
     for (int i = 0; i < id; i++)
         pthread_join(thread[i], NULL);
+
+    if (g_scan.options.verbose == 1)
+        printf("\rEvery packets have been sent.   \n");
 }

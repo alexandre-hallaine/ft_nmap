@@ -32,7 +32,20 @@ void add_IP(t_addrinfo addr) {
     t_IP *head = g_scan.IPs;
     t_IP *new_node = NULL;
 
-    for (; head && head->next; head = head->next);
+    for (; head; head = head->next)
+    {
+        if (g_scan.IPs_count > MAX_IPS)
+            error(2, "add_IP: too many IPs (max: %d)\n", MAX_IPS);
+        if ((g_scan.family == AF_INET && memcmp(&head->destination.addr.in.sin_addr, &addr.addr.in.sin_addr, sizeof(struct in_addr)) == 0)
+            || (g_scan.family == AF_INET6 && memcmp(&head->destination.addr.in6.sin6_addr, &addr.addr.in6.sin6_addr, sizeof(struct in6_addr)) == 0))
+        {
+            fprintf(stderr, "Warning: %s: duplicate IP, ignoring\n", addr.name);
+            return;
+        }
+        if (!head->next)
+            break;
+    }
+
     new_node = malloc(sizeof(t_IP));
 
     if (!new_node)
@@ -47,12 +60,14 @@ void add_IP(t_addrinfo addr) {
         strcat(g_scan.filter, " or ");
         head->next = new_node;
     }
+    g_scan.IPs_count++;
 
     char ip[INET6_ADDRSTRLEN] = {0};
     if (g_scan.family == AF_INET)
         inet_ntop(g_scan.family, &addr.addr.in.sin_addr, ip, sizeof(ip));
     else if (g_scan.family == AF_INET6)
         inet_ntop(g_scan.family, &addr.addr.in6.sin6_addr, ip, sizeof(ip));
+
     strcat(g_scan.filter, "src ");
     strcat(g_scan.filter, ip);
 }

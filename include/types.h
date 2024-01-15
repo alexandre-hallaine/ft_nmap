@@ -15,6 +15,8 @@
 #define PORT_MIN 1
 #define PORT_MAX 1024
 
+#define MAX_IPS 42
+
 typedef struct
 {
     u_int32_t source_address;
@@ -45,6 +47,8 @@ typedef struct
 {
     t_addr addr;
     socklen_t addrlen;
+
+    char name[NI_MAXHOST];
 } t_addrinfo;
 
 typedef enum
@@ -89,7 +93,7 @@ typedef struct
     int ports_count;
 
     unsigned short thread_count;
-    bool verbose;
+    int verbose;
     bool ping;
     bool traceroute;
     bool timestamp;
@@ -110,8 +114,8 @@ typedef struct
     t_addr interface;
     int family;
     t_IP *IPs;
+    int IPs_count;
 
-    char buffer[BUFSIZ];
     char filter[BUFSIZ];
     pcap_t *handle;
     bool stop;

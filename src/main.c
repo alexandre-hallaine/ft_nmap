@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
                 for (t_technique i = 0; i < TECHNIQUE_COUNT; i++)
                     options->techniques[i] = false;
                 options->techniques[technique] = true;
-                routine(options);            }
+                routine(options);
+            }
         if (g_scan.options.verbose)
             printf("\n");
     }
@@ -91,11 +92,13 @@ int main(int argc, char *argv[])
     while (!g_scan.stop) {
         pcap_dispatch(g_scan.handle, -1, packet_handler, NULL);
     }
+    if (g_scan.options.verbose)
+        printf("\n");
 
     struct timeval tv2;
     gettimeofday(&tv2, NULL);
     double time = (tv2.tv_sec - tv.tv_sec) + (tv2.tv_usec - tv.tv_usec) / 1000000.0;
-    printf("Scan finished in %.2f seconds\n", time);
+    printf("\nScan finished in %.2f seconds\n", time);
 
     pcap_close(g_scan.handle);
     print_result();
