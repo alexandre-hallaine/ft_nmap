@@ -89,9 +89,10 @@ typedef struct
     int ports_count;
 
     unsigned short thread_count;
+    bool verbose;
     bool ping;
     bool traceroute;
-    bool verbose;
+    bool timestamp;
 } t_options;
 
 typedef union

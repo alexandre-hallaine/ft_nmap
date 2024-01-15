@@ -35,16 +35,22 @@ int main(int argc, char *argv[])
     if (g_scan.options.ping)
     {
         printf("Starting ping...\n");
-        traceroute(false);
+        traceroute(PING);
+        check_down();
     }
-    check_down();
 
     if (g_scan.options.traceroute)
     {
         printf("Starting traceroute...\n");
-        traceroute(true);
+        traceroute(TRACEROUTE);
+        check_down();
     }
-    check_down();
+
+    if (g_scan.options.timestamp)
+    {
+        printf("Starting timestamp...\n");
+        traceroute(TIMESTAMP);
+    }
 
     g_scan.handle = pcap_open_live(NULL, BUFSIZ, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL);
     struct bpf_program fp = {0};

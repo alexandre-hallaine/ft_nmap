@@ -7,7 +7,7 @@
 #include "functions.h"
 #include "traceroute.h"
 
-t_traceroute g_traceroute = {.sequence = 0, .datalen = 40};
+t_traceroute g_traceroute = { .sequence = 0, .datalen = 40 };
 
 int scan(int ttl, t_IP *IP, char buffer[USHRT_MAX])
 {
@@ -22,7 +22,7 @@ int scan(int ttl, t_IP *IP, char buffer[USHRT_MAX])
     icmp->checksum -= htons(g_traceroute.sequence) - icmp->un.echo.sequence;
     icmp->un.echo.sequence = htons(g_traceroute.sequence);
 
-    sendto(g_traceroute.send_sock, buffer, g_traceroute.datalen, 0, &IP->destination.addr.addr, IP->destination.addrlen);
+    sendto(g_traceroute.socket, buffer, g_traceroute.datalen, 0, &IP->destination.addr.addr, IP->destination.addrlen);
 
     struct timeval time;
     gettimeofday(&time, NULL);
@@ -40,25 +40,24 @@ int scan(int ttl, t_IP *IP, char buffer[USHRT_MAX])
 
     if (g_traceroute.type == TRACEROUTE)
     {
-        if (code == 1)
-        printf("Host %s has %d hops\n", ip, ttl);
+        if (code > 0)
+            printf("Host %s has %d hops\n", ip, ttl);
     }
     else if (g_traceroute.type == PING)
     {
-        if (code == 1)
-            printf("Host %s is up\n", ip);
-        else if (code == 0) {
+        if (code == 0)
+        {
             printf("Host %s is down\n", ip);
             IP->is_down = true;
         }
+        else if (code > 0)
+            printf("Host %s is up\n", ip);
     }
     return (code);
 }
 
 void traceroute(t_scan_type type)
 {
-    if (type == TIMESTAMP && g_scan.family == AF_INET6)
-        error(1, "Timestamping is not supported with IPv6.\n");
 
     g_traceroute.type = type;
     generate_socket();
@@ -70,7 +69,14 @@ void traceroute(t_scan_type type)
     for (unsigned short i = sizeof(struct icmphdr) + 1; i < g_traceroute.datalen; i++)
         buffer[i] = 66; // 42 in hex ᕕ( ᐛ )ᕗ
 
-    icmp->type = g_scan.family == AF_INET ? ICMP_ECHO : ICMP6_ECHO_REQUEST;
+    if (type == TIMESTAMP)
+    {
+        if (g_scan.family == AF_INET6)
+            error(1, "Timestamping is not supported with IPv6.\n");
+        icmp->type = ICMP_TIMESTAMP;
+    }
+    else
+        icmp->type = g_scan.family == AF_INET ? ICMP_ECHO : ICMP6_ECHO_REQUEST;
     icmp->un.echo.id = htons(4242);
     icmp->checksum = checksum((unsigned short *)buffer, g_traceroute.datalen);
 
@@ -86,7 +92,13 @@ void traceroute(t_scan_type type)
                 IP->is_down = true;
             }
         }
-        else if (type == PING)
-            scan(255, IP, buffer);
+        else
+        {
+            int ttl = 255;
+            if (type == PING)
+                scan(ttl, IP, buffer);
+            else if (type == TIMESTAMP)
+                scan(ttl, IP, buffer);
+        }
     printf("\n");
 }

@@ -20,6 +20,7 @@ void usage(char *program)
         "\t-u:\t\t\t\tping host before scanning\n"
         "\t-r:\t\t\t\ttraceroute host before scanning\n"
         "\t-v:\t\t\t\tvery verbose mode\n"
+        "\t-m:\t\t\t\tcheck the uptime of the host\n"
         , program);
 
     error(1, NULL);
@@ -182,6 +183,10 @@ void flag_parser(unsigned short *index, char *argv[])
 
     case 'v':
         g_scan.options.verbose = true;
+        break;
+
+    case 'm':
+        g_scan.options.timestamp = true;
         break;
 
     default:
