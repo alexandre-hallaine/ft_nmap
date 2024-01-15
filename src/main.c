@@ -72,9 +72,7 @@ int main(int argc, char *argv[])
                 for (t_technique i = 0; i < TECHNIQUE_COUNT; i++)
                     options->techniques[i] = false;
                 options->techniques[technique] = true;
-                routine(options);
-                sleep(1);
-            }
+                routine(options);            }
         if (g_scan.options.verbose)
             printf("\n");
     }

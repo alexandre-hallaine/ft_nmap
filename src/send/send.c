@@ -85,6 +85,7 @@ void *routine(void *arg)
                 // Send the packet
                 if (sendto(sock, &packet, packet_size, 0, &IP->destination.addr.addr, IP->destination.addrlen) == -1)
                     error(1, "sendto: %s\n", strerror(errno));
+                ft_usleep(1000);
             }
     }
 
