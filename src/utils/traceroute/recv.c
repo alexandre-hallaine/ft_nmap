@@ -86,7 +86,9 @@ int recv_packet(struct timeval last)
 
 
     if (g_scan.options.verbose == 2) {
-        printf("%s", g_traceroute.current_IP->name);
+        char ip[INET6_ADDRSTRLEN];
+        inet_ntop(addr.ss_family, g_scan.options.family == AF_INET ? (void *)&((struct sockaddr_in *)&addr)->sin_addr : (void *)&((struct sockaddr_in6 *)&addr)->sin6_addr, ip, sizeof(ip));
+        printf("%s", ip);
         printf(" %.3fms\n", (time.tv_sec - last.tv_sec) * 1000.0 + (time.tv_usec - last.tv_usec) / 1000.0);
     }
     return ret;

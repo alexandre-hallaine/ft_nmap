@@ -82,7 +82,10 @@ void traceroute(t_scan_type type)
     if (type == TIMESTAMP)
     {
         if (g_scan.options.family == AF_INET6)
-            error(1, "Timestamping is not supported with IPv6.\n");
+        {
+            printf("Timestamping is not supported with IPv6.\n");
+            return ;
+        }
         icmp->type = ICMP_TIMESTAMP;
     }
     else
