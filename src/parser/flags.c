@@ -7,7 +7,7 @@
 void usage(char *program)
 {
     printf("usage: %s [options] <host>\n"
-
+             "\n"
              "options:\n"
              "\t-h:\t\t\t\tdisplay this help\n"
              "\t-p <ports>:\t\t\tscan the specified ports (default: 1-1024, eg. 1-5,80)\n"
@@ -21,7 +21,10 @@ void usage(char *program)
              "\t-v:\t\t\t\tverbose mode\n"
              "\t-V:\t\t\t\tvery verbose mode\n"
              "\t-m:\t\t\t\tcheck the uptime of the host\n"
-
+             "\n"
+             "arguments:\n"
+             "\t<host>:\t\t\t\thost to scan\n"
+             "\n"
              "Made with ❤️ by @alexandre-hallaine and @Assxios\n", program);
     exit(0);
 }
