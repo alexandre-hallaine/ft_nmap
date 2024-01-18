@@ -1,15 +1,14 @@
 #include "functions.h"
 
-#include <ifaddrs.h>
 #include <errno.h>
-#include <net/if.h>
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <netdb.h>
-#include <stdlib.h>
 #include <string.h>
 
-t_sockaddr get_interface(int family)
+#include <netdb.h>
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <arpa/inet.h>
+
+t_sockaddr get_interface()
 {
     // getting the list of all interface
     struct ifaddrs *ifaddr;
@@ -20,58 +19,44 @@ t_sockaddr get_interface(int family)
     t_sockaddr addr = {0};
     struct ifaddrs *tmp = NULL;
     for (tmp = ifaddr; tmp != NULL; tmp = tmp->ifa_next)
-        if ((tmp->ifa_flags & IFF_BROADCAST) && tmp->ifa_addr->sa_family == family) // ifa_addr always exists if IFF_BROADCAST is set (we dont need to check if it is NULL)
+        if ((tmp->ifa_flags & IFF_BROADCAST) && tmp->ifa_addr->sa_family == g_scan.options.family) // ifa_addr always exists if IFF_BROADCAST is set (we dont need to check if it is NULL)
         {
             // storing the interface address
-            if (family == AF_INET)
-                addr.ipv4 = *(struct sockaddr_in *)tmp->ifa_addr;
-            else if (family == AF_INET6)
-                addr.ipv6 = *(struct sockaddr_in6 *)tmp->ifa_addr;
-            else
-                continue;
-
-            // print the interface name and the ip address
-            {
-                char ip[INET6_ADDRSTRLEN] = {0};
-                inet_ntop(family, family == AF_INET ? (void *)&addr.ipv4.sin_addr : (void *)&addr.ipv6.sin6_addr, ip, sizeof(ip));
-                printf("Interface: %s(%s)\n", tmp->ifa_name, ip);
-            }
-
+            ft_memcpy(&addr, tmp->ifa_addr, sizeof(t_sockaddr));
             break;
         }
 
-    freeifaddrs(ifaddr);
     if (tmp == NULL)
         error(1, "get_interface: no interface found\n");
+    else {
+            // print the interface name and the ip address
+            char ip[INET6_ADDRSTRLEN] = {0};
+            inet_ntop(g_scan.options.family, g_scan.options.family == AF_INET ? (void *)&addr.ipv4.sin_addr : (void *)&addr.ipv6.sin6_addr, ip, sizeof(ip));
+            printf("Interface: %s(%s)\n", tmp->ifa_name, ip);
+    }
+
+    freeifaddrs(ifaddr);
     return addr;
 }
 
-t_IP get_info(char *host)
+t_IP get_ip(char *host)
 {
     // getting the address info of the host with the canonname (the name of the host eg: google.com)
     struct addrinfo *res, hints = {.ai_flags = AI_CANONNAME, .ai_family = g_scan.options.family};
     if ((errno = getaddrinfo(host, NULL, &hints, &res)) != 0)
         error(1, "getaddrinfo: %s\n", gai_strerror(errno));
 
-    // check if it is right (we only want ipv4 or ipv6)
-    char ip_str[INET6_ADDRSTRLEN] = {0};
-    if (res->ai_family == AF_INET)
-        inet_ntop(res->ai_family, &((struct sockaddr_in *)res->ai_addr)->sin_addr, ip_str, sizeof(ip_str));
-    else if (res->ai_family == AF_INET6)
-        inet_ntop(res->ai_family, &((struct sockaddr_in6 *)res->ai_addr)->sin6_addr, ip_str, sizeof(ip_str));
-    else
-        error(1, "get_info: unknown address family\n");
-    if (g_scan.options.family == 0)
-        g_scan.options.family = res->ai_family;
-
     t_IP ip = { .addrlen = res->ai_addrlen };
+    // copying the address bytes to avoid losing information
+    ft_memcpy(&ip.addr, res->ai_addr, res->ai_addrlen);
+
+    // save the ip of the host
+    char ip_str[INET6_ADDRSTRLEN] = {0};
+    inet_ntop(res->ai_family, g_scan.options.family == AF_INET ? (void *)&ip.addr.ipv4.sin_addr : (void *)&ip.addr.ipv6.sin6_addr, ip_str, sizeof(ip_str));
     if (ft_strcmp(res->ai_canonname, ip_str) != 0)
         sprintf(ip.name, "%s(%s)", res->ai_canonname, ip_str);
     else
         sprintf(ip.name, "%s", ip_str);
-
-    // copying the address bytes to avoid losing information
-    ft_memcpy(&ip.addr, res->ai_addr, res->ai_addrlen);
 
     freeaddrinfo(res);
     return ip;

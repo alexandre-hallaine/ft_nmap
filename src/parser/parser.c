@@ -132,7 +132,7 @@ void parse_file(char *file)
     while (get_next_line(fp->_fileno, &line) > 0)
     {
         if (line[0] != '\0')
-            add_IP(get_info(line));
+            add_IP(get_ip(line));
         free(line);
     }
     free(line);
@@ -287,7 +287,7 @@ void init(int argc, char *argv[])
     {
         if (index != argc - 1)
             usage(argv[0]);
-        add_IP(get_info(argv[index]));
+        add_IP(get_ip(argv[index]));
     }
 
     // If the amount of threads is less than the amount of techniques, use the amount of techniques

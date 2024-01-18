@@ -29,8 +29,8 @@ int ft_atoi(const char *str);
 int get_next_line(int fd, char **line);
 
 // address.c
-t_sockaddr get_interface(int family);
-t_IP get_info(char *host);
+t_sockaddr get_interface();
+t_IP get_ip(char *host);
 
 // parser.c
 void init(int argc, char *argv[]);
