@@ -96,13 +96,14 @@ typedef struct
     int technique_count;
     bool port[USHRT_MAX + 1];
     int port_count;
-
     unsigned short thread_count;
+
     int family;
     int verbose;
     bool ping;
     bool traceroute;
     bool timestamp;
+    bool file;
 } t_options;
 
 typedef struct

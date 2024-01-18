@@ -3,6 +3,17 @@
 
 #include "types.h"
 
+// address.c
+t_sockaddr get_interface();
+t_IP get_ip(char *host);
+
+// flags.c
+void usage(char *program);
+void parse_thread(char *thread);
+void parse_port_range(char *ports);
+void parse_technique(char *technique);
+void parse_file(char *file);
+
 // utils.c
 void error(int code, char *fmt, ...);
 char *get_technique_name(t_technique technique);
@@ -27,10 +38,6 @@ int ft_atoi(const char *str);
 
 // gnl.c
 int get_next_line(int fd, char **line);
-
-// address.c
-t_sockaddr get_interface();
-t_IP get_ip(char *host);
 
 // parser.c
 void init(int argc, char *argv[]);

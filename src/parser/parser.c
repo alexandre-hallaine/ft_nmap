@@ -1,150 +1,14 @@
 #include "functions.h"
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
-
-void usage(char *program)
-{
-    printf("usage: %s [options] <host>\n"
-        "options:\n"
-        "\t-h:\t\t\t\tdisplay this help\n"
-        "\t-p <ports>:\t\t\tscan the specified ports (default: 1-1024, eg. 1-5,80)\n"
-        "\t-s <techniques>:\t\tscan with the specified techniques (default: ASFNXU)\n"
-        "\t\t\t\t\tA: ACK, S: SYN, F: FIN, N: NUL, X: XMAS, U: UDP\n"
-        "\t-f <file>:\t\t\tscan the specified hosts within the file (<host> not needed)\n"
-        "\t-t <threads>:\t\t\tscan with the specified amount of threads (default: 0)\n"
-        "\t-6:\t\t\t\tuse IPv6\n"
-        "\t-u:\t\t\t\tping host before scanning\n"
-        "\t-r:\t\t\t\ttraceroute host before scanning\n"
-        "\t-v:\t\t\t\tverbose mode\n"
-        "\t-V:\t\t\t\tvery verbose mode\n"
-        "\t-m:\t\t\t\tcheck the uptime of the host\n"
-        , program);
-
-    error(1, NULL);
-}
-
-void parse_thread(char *thread)
-{
-    if (!is_number(thread))
-        error(2, "usage: %s: threads must be a number\n", thread);
-
-    g_scan.options.thread_count = ft_atoi(thread);
-
-    if (g_scan.options.thread_count > 250)
-        error(2, "usage: %s: threads execeeding 250\n", thread);
-    else if (g_scan.options.thread_count <= 0)
-        error(2, "usage: %s: threads must be a number greater than 0\n", thread);
-}
-
-void parse_port_range(char *ports) // need to change and send
-{
-    char *delimiter = ft_strchr(ports, ',');
-    int max;
-
-    if (delimiter != NULL)
-    {
-        parse_port_range(delimiter + 1);
-        *delimiter = '\0';
-    }
-
-    if (ft_strlen(ports) == 0)
-        error(2, "usage: you must specify a port\n");
-
-
-    delimiter = ft_strchr(ports, '-');
-    if (delimiter != NULL)
-    {
-        if (!is_number(delimiter + 1))
-            error(2, "usage: %s: threads must be a number\n", delimiter + 1);
-
-        *delimiter = '\0';
-        max = ft_atoi(delimiter + 1);
-    }
-
-    if (!is_number(ports))
-        error(2, "usage: %s: threads must be a number\n", ports);
-
-    int base = ft_atoi(ports);
-    if (base < 0 || base > 65535)
-        error(2, "usage: %d: invalid port\n", base);
-    else if (delimiter == NULL)
-        g_scan.options.port[base] = true;
-    else if (max < 0 || max > USHRT_MAX)
-        error(2, "usage: %d: invalid port\n", max);
-    else if (base > max)
-        error(2, "usage: %d-%d: min port must be less than max port\n", base, max);
-    else
-        for (int i = base; i <= max; i++)
-            g_scan.options.port[i] = true;
-
-    int amount = 0;
-    for (int i = 0; i <= USHRT_MAX; i++)
-        if (g_scan.options.port[i])
-            amount++;
-
-    if (amount > 1024)
-        error(2, "usage: %s: port range exceeding 1024\n", ports);
-    g_scan.options.port_count = amount;
-}
-
-void parse_technique(char *technique)
-{
-    for (unsigned char i = 0; i < ft_strlen(technique); i++)
-    {
-        switch (technique[i])
-        {
-        case 'A':
-            g_scan.options.technique[ACK] = true;
-            break;
-        case 'S':
-            g_scan.options.technique[SYN] = true;
-            break;
-        case 'F':
-            g_scan.options.technique[FIN] = true;
-            break;
-        case 'N':
-            g_scan.options.technique[NUL] = true;
-            break;
-        case 'X':
-            g_scan.options.technique[XMAS] = true;
-            break;
-        case 'U':
-            g_scan.options.technique[UDP] = true;
-            break;
-        default:
-            error(2, "usage: %c: unknown technique\n", technique[i]);
-        }
-        g_scan.options.technique_count++;
-    }
-}
-
-void parse_file(char *file)
-{
-    char *line;
-    FILE *fp = fopen(file, "r");
-    if (fp == NULL)
-        error(2, "usage: %s: file not found\n", file);
-
-    // Read file line by line and add IP to list
-    while (get_next_line(fp->_fileno, &line) > 0)
-    {
-        if (line[0] != '\0')
-            add_IP(get_ip(line));
-        free(line);
-    }
-    free(line);
-
-    fclose(fp);
-}
 
 void flag_parser(unsigned short *index, char *argv[])
 {
     char flag = argv[*index][1];
 
-    if (flag && ft_strchr("psft", flag)) // If the flag is followed by the argument
+    if (argv[*index][2] != '\0')
+        error(1, "parser: you can only specify one flag at a time\n");
+    if (flag && ft_strchr("pst", flag)) // If the flag is followed by the argument
     {
         (*index)++;
         if (argv[*index] == NULL)
@@ -166,7 +30,7 @@ void flag_parser(unsigned short *index, char *argv[])
         break;
 
     case 'f':
-        parse_file(argv[*index]);
+        g_scan.options.file = true;
         break;
 
     case 't':
@@ -205,17 +69,9 @@ void flag_parser(unsigned short *index, char *argv[])
 
 void print_stats()
 {
-    bool first = true;
-
     printf("Address: ");
     for (t_IP *ip = g_scan.ip; ip != NULL; ip = ip->next)
-    {
-        if (first)
-            first = false;
-        else
-            printf(", ");
-        printf("%s", ip->name);
-    }
+        printf("%s ", ip->name);
     printf("\n");
 
     printf("Techniques: ");
@@ -231,7 +87,7 @@ void print_stats()
         printf("%d\n", g_scan.options.port_count);
     else
     {
-        first = true;
+        bool first = true;
         int amount = 0;
         for (int i = 0; i <= USHRT_MAX; i++)
             if (g_scan.options.port[i])
@@ -267,10 +123,26 @@ void init(int argc, char *argv[])
     for (index = 1; index < argc && argv[index][0] == '-'; index++)
         flag_parser(&index, argv);
 
+    if (g_scan.ip == NULL)
+    {
+        // If the last argument exists
+        if (index != argc - 1)
+            usage(argv[0]);
+
+        if (g_scan.options.file)
+            parse_file(argv[index]);
+        else
+            add_IP(get_ip(argv[index]));
+    }
+
+    // Get interface
+    g_scan.interface = get_interface(g_scan.options.family);
+
     // If no techniques specified, scan all
     if (g_scan.options.technique_count == 0)
     {
-        ft_memset(g_scan.options.technique, true, TECHNIQUE_COUNT);
+        for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
+            g_scan.options.technique[i] = true;
         g_scan.options.technique_count = TECHNIQUE_COUNT;
     }
 
@@ -282,23 +154,16 @@ void init(int argc, char *argv[])
         g_scan.options.port_count = PORT_MAX - PORT_MIN + 1;
     }
 
-    // If -f is not specified, the last argument is the host
-    if (g_scan.ip == NULL)
-    {
-        if (index != argc - 1)
-            usage(argv[0]);
-        add_IP(get_ip(argv[index]));
-    }
-
     // If the amount of threads is less than the amount of techniques, use the amount of techniques
     // We do this because we assume at least one thread per technique (if threads are used)
     if (g_scan.options.thread_count != 0 && g_scan.options.thread_count < g_scan.options.technique_count) {
         g_scan.options.thread_count = g_scan.options.technique_count;
-        fprintf(stderr, "Warning: Not enough threads, using %d instead\n\n", g_scan.options.technique_count);
+        fprintf(stderr, "Warning: Not enough threads, using %d instead\n\n", g_scan.options.thread_count);
     }
-
-    // Get interface
-    g_scan.interface = get_interface(g_scan.options.family);
+    if (g_scan.options.thread_count > g_scan.options.port_count * g_scan.options.technique_count) {
+        g_scan.options.thread_count = g_scan.options.port_count * g_scan.options.technique_count;
+        fprintf(stderr, "Warning: Too many threads, using %d instead\n\n", g_scan.options.thread_count);
+    }
 
     print_stats();
 }
