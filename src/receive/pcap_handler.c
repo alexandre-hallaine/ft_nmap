@@ -3,7 +3,6 @@
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <netinet/ip_icmp.h>
-#include <string.h>
 #include <unistd.h>
 
 void icmp_analyze(int technique, int port, struct icmphdr *icmp, t_IP *IP)
@@ -42,7 +41,7 @@ void packet_handler(unsigned char *arg, const struct pcap_pkthdr *pcap_header, c
     for (IP = g_scan.IPs; IP; IP = IP->next)
         if (g_scan.family == AF_INET && IP->destination.addr.in.sin_addr.s_addr == header->ipv4.saddr)
             break;
-        else if (g_scan.family == AF_INET6 && !memcmp(&IP->destination.addr.in6.sin6_addr, &header->ipv6.ip6_src, sizeof(struct in6_addr)))
+        else if (g_scan.family == AF_INET6 && !ft_memcmp(&IP->destination.addr.in6.sin6_addr, &header->ipv6.ip6_src, sizeof(struct in6_addr)))
             break;
     if (!IP)
         return;

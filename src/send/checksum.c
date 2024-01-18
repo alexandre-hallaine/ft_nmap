@@ -1,6 +1,5 @@
 #include "functions.h"
 
-#include <string.h>
 #include <netdb.h>
 
 unsigned short checksum(unsigned short *addr, size_t len)

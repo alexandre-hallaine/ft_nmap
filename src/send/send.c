@@ -1,12 +1,12 @@
 #include "functions.h"
 
 #include <errno.h>
-#include <string.h>
 #include <netinet/ip.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 
 int create_socket(int protocol)
 {

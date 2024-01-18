@@ -4,7 +4,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
 
 t_scan g_scan = {0};
 

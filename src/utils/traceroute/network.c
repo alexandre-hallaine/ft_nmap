@@ -1,9 +1,9 @@
 #include "traceroute.h"
 #include "functions.h"
 
-#include <string.h>
 #include <errno.h>
 #include <netdb.h>
+#include <string.h>
 
 void generate_socket()
 {

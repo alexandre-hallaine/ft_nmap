@@ -4,18 +4,26 @@
 #include "types.h"
 
 // utils.c
-char *ft_bzero(void *str, size_t n);
-void *ft_calloc(size_t count, size_t size);
 void error(int code, char *fmt, ...);
 char *get_technique_name(t_technique technique);
 void print_status_name(t_status status);
 void add_IP(t_addrinfo addr);
 void free_IPs();
-int _ceil(float num);
+int is_number(char *str);
+
+// libft.c
+char *ft_bzero(void *str, size_t n);
+void *ft_calloc(size_t count, size_t size);
+int ft_ceil(float num);
 char *ft_memcpy(void *dest, const void *src, size_t n);
 char *ft_strchr(const char *s, int c);
-int is_number(char *str);
 void ft_usleep(long usec);
+int ft_strlen(const char *s);
+char ft_strcat(char *dest, const char *src);
+int ft_memcmp(const void *s1, const void *s2, size_t n);
+void *ft_memset(void *s, int c, size_t n);
+int ft_strcmp(const char *s1, const char *s2);
+int ft_atoi(const char *str);
 
 // gnl.c
 int get_next_line(int fd, char **line);

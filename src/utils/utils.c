@@ -1,26 +1,7 @@
-#include "types.h"
+#include "functions.h"
 
-#include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-char *ft_bzero(void *str, size_t n)
-{
-    char *s = str;
-    while (n--)
-        *s++ = 0;
-    return str;
-}
-
-void *ft_calloc(size_t count, size_t size)
-{
-    void *ptr = malloc(count * size);
-    if (!ptr)
-        return NULL;
-    ft_bzero(ptr, count * size);
-    return ptr;
-}
+#include <stdarg.h>
 
 void free_IPs()
 {
@@ -53,8 +34,8 @@ void add_IP(t_addrinfo addr) {
     {
         if (g_scan.IPs_count > MAX_IPS)
             error(2, "add_IP: too many IPs (max: %d)\n", MAX_IPS);
-        if ((g_scan.family == AF_INET && memcmp(&head->destination.addr.in.sin_addr, &addr.addr.in.sin_addr, sizeof(struct in_addr)) == 0)
-            || (g_scan.family == AF_INET6 && memcmp(&head->destination.addr.in6.sin6_addr, &addr.addr.in6.sin6_addr, sizeof(struct in6_addr)) == 0))
+        if ((g_scan.family == AF_INET && ft_memcmp(&head->destination.addr.in.sin_addr, &addr.addr.in.sin_addr, sizeof(struct in_addr)) == 0)
+            || (g_scan.family == AF_INET6 && ft_memcmp(&head->destination.addr.in6.sin6_addr, &addr.addr.in6.sin6_addr, sizeof(struct in6_addr)) == 0))
         {
             fprintf(stderr, "Warning: %s: duplicate IP, ignoring\n", addr.name);
             return;
@@ -73,7 +54,7 @@ void add_IP(t_addrinfo addr) {
     if (!g_scan.IPs)
         g_scan.IPs = new_node;
     else {
-        strcat(g_scan.filter, " or ");
+        ft_strcat(g_scan.filter, " or ");
         head->next = new_node;
     }
     g_scan.IPs_count++;
@@ -84,8 +65,8 @@ void add_IP(t_addrinfo addr) {
     else if (g_scan.family == AF_INET6)
         inet_ntop(g_scan.family, &addr.addr.in6.sin6_addr, ip, sizeof(ip));
 
-    strcat(g_scan.filter, "src ");
-    strcat(g_scan.filter, ip);
+    ft_strcat(g_scan.filter, "src ");
+    ft_strcat(g_scan.filter, ip);
 }
 
 char *get_technique_name(t_technique technique)
@@ -125,53 +106,10 @@ void print_status_name(t_status status)
     printf("\n");
 }
 
-int _ceil(float num) {
-    if (num < 0)
-        return (int)num;
-    return (int)num + 1;
-}
-
-char *ft_memcpy(void *dest, const void *src, size_t n)
-{
-    char *d = dest;
-    const char *s = src;
-    while (n--)
-        *d++ = *s++;
-    return dest;
-}
-
-char *ft_strchr(const char *s, int c)
-{
-    while (*s)
-    {
-        if (*s == c)
-            return (char *)s;
-        s++;
-    }
-    if (*s == c)
-        return (char *)s;
-    return NULL;
-}
-
 int is_number(char *str)
 {
-    for (unsigned char i = 0; i < strlen(str); i++)
+    for (unsigned char i = 0; i < ft_strlen(str); i++)
         if (str[i] < '0' || str[i] > '9')
             return 0;
     return 1;
-}
-
-void ft_usleep(long usec) {
-    struct timeval start, current;
-
-    gettimeofday(&start, NULL);
-    long end = start.tv_usec + usec;
-
-    do {
-        gettimeofday(&current, NULL);
-        if (current.tv_usec < start.tv_usec) {
-            current.tv_usec += 1000000;
-            current.tv_sec -= 1;
-        }
-    } while (current.tv_sec < start.tv_sec || (current.tv_sec == start.tv_sec && current.tv_usec < end));
 }

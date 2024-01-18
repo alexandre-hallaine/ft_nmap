@@ -1,10 +1,9 @@
 #include "functions.h"
 
 #include <stddef.h>
-#include <unistd.h>
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 void usage(char *program)
 {
@@ -32,7 +31,7 @@ void parse_thread(char *thread)
     if (!is_number(thread))
         error(2, "usage: %s: threads must be a number\n", thread);
 
-    g_scan.options.thread_count = atoi(thread);
+    g_scan.options.thread_count = ft_atoi(thread);
 
     if (g_scan.options.thread_count > 250)
         error(2, "usage: %s: threads execeeding 250\n", thread);
@@ -51,7 +50,7 @@ void parse_port_range(char *ports) // need to change and send
         *delimiter = '\0';
     }
 
-    if (strlen(ports) == 0)
+    if (ft_strlen(ports) == 0)
         error(2, "usage: you must specify a port\n");
 
 
@@ -62,13 +61,13 @@ void parse_port_range(char *ports) // need to change and send
             error(2, "usage: %s: threads must be a number\n", delimiter + 1);
 
         *delimiter = '\0';
-        max = atoi(delimiter + 1);
+        max = ft_atoi(delimiter + 1);
     }
 
     if (!is_number(ports))
         error(2, "usage: %s: threads must be a number\n", ports);
 
-    int base = atoi(ports);
+    int base = ft_atoi(ports);
     if (base < 0 || base > 65535)
         error(2, "usage: %d: invalid port\n", base);
     else if (delimiter == NULL)
@@ -93,7 +92,7 @@ void parse_port_range(char *ports) // need to change and send
 
 void parse_technique(char *technique)
 {
-    for (unsigned char i = 0; i < strlen(technique); i++)
+    for (unsigned char i = 0; i < ft_strlen(technique); i++)
     {
         g_scan.options.techniques_count++;
 
@@ -272,7 +271,7 @@ void init(int argc, char *argv[])
     // If no techniques specified, scan all
     if (g_scan.options.techniques_count == 0)
     {
-        memset(g_scan.options.techniques, true, TECHNIQUE_COUNT);
+        ft_memset(g_scan.options.techniques, true, TECHNIQUE_COUNT);
         g_scan.options.techniques_count = TECHNIQUE_COUNT;
     }
 

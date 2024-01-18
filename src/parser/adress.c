@@ -2,12 +2,12 @@
 
 #include <ifaddrs.h>
 #include <errno.h>
-#include <string.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <netdb.h>
 #include <stdlib.h>
+#include <string.h>
 
 t_addr get_interface(int family)
 {
@@ -65,7 +65,7 @@ t_addrinfo get_info(char *host)
         g_scan.family = res->ai_family;
 
     t_addrinfo addr = { .addrlen = res->ai_addrlen };
-    if (strcmp(res->ai_canonname, ip) != 0)
+    if (ft_strcmp(res->ai_canonname, ip) != 0)
         sprintf(addr.name, "%s(%s)", res->ai_canonname, ip);
     else
         sprintf(addr.name, "%s", ip);
