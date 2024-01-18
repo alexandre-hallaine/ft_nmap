@@ -21,6 +21,8 @@ void print_status_name(t_status status);
 void add_IP(t_IP addr);
 void free_IPs();
 int is_number(char *str);
+void check_down();
+int get_number(char *str);
 
 // libft.c
 char *ft_bzero(void *str, size_t n);
@@ -39,17 +41,24 @@ int ft_atoi(const char *str);
 // gnl.c
 int get_next_line(int fd, char **line);
 
-// parser.c
+// init.c
 void init(int argc, char *argv[]);
 
-// packet.c
+// network.c
 t_packet_header create_packet(t_technique technique);
+int create_socket(int protocol);
 
 // checksum.c
 unsigned short checksum(unsigned short *addr, size_t len);
 void calculate_checksum(u_int8_t protocol, t_packet_header *packet, unsigned short packet_size, t_IP *IP);
 
 // send.c
+void init_send();
+
+// parser.c
+void flag_parser(unsigned short *index, char *argv[]);
+
+// thread.c
 void *routine(void *arg);
 void thread_send();
 

@@ -113,3 +113,26 @@ int is_number(char *str)
             return 0;
     return 1;
 }
+
+void check_down()
+{
+    bool all_down = true;
+    for (t_IP *IP = g_scan.ip; IP != NULL; IP = IP->next)
+        if (!IP->is_down)
+        {
+            all_down = false;
+            break;
+        }
+
+    if (all_down)
+        error(1, "None of the hosts specified are up. Stopping now.\n");
+}
+
+int get_number(char *str)
+{
+    if (ft_strlen(str) == 0)
+        error(2, "get_number: empty string\n");
+    else if (!is_number(str))
+        error(2, "get_number: %s: not a number\n", str);
+    return ft_atoi(str);
+}

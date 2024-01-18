@@ -29,15 +29,6 @@ void usage(char *program)
     exit(0);
 }
 
-int get_number(char *str)
-{
-    if (ft_strlen(str) == 0)
-        error(2, "get_number: empty string\n");
-    else if (!is_number(str))
-        error(2, "get_number: %s: not a number\n", str);
-    return ft_atoi(str);
-}
-
 void parse_thread(char *number)
 {
     g_scan.options.thread_count = get_number(number);
