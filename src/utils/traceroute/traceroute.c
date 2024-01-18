@@ -21,7 +21,7 @@ int scan(int ttl, char buffer[USHRT_MAX])
     icmp->checksum -= htons(g_traceroute.sequence) - icmp->un.echo.sequence;
     icmp->un.echo.sequence = htons(g_traceroute.sequence);
 
-    sendto(g_traceroute.socket, buffer, g_traceroute.datalen, 0, &g_traceroute.current_IP->destination.addr.addr, g_traceroute.current_IP->destination.addrlen);
+    sendto(g_traceroute.socket, buffer, g_traceroute.datalen, 0, &g_traceroute.current_IP->addr.base, g_traceroute.current_IP->addrlen);
 
     struct timeval time;
     gettimeofday(&time, NULL);
@@ -34,22 +34,22 @@ int scan(int ttl, char buffer[USHRT_MAX])
     if (g_traceroute.type == TRACEROUTE)
     {
         if (code > 0)
-            printf("Host %s has %d hops\n", g_traceroute.current_IP->destination.name, ttl);
+            printf("Host %s has %d hops\n", g_traceroute.current_IP->name, ttl);
     }
     else if (g_traceroute.type == PING)
     {
         if (code == 0)
         {
-            printf("Host %s is down\n", g_traceroute.current_IP->destination.name);
+            printf("Host %s is down\n", g_traceroute.current_IP->name);
             g_traceroute.current_IP->is_down = true;
         }
         else if (code > 0)
-            printf("Host %s is up\n", g_traceroute.current_IP->destination.name);
+            printf("Host %s is up\n", g_traceroute.current_IP->name);
     }
     else if (g_traceroute.type == TIMESTAMP)
     {
         if (code == 0)
-            printf("No response from host %s\n", g_traceroute.current_IP->destination.name);
+            printf("No response from host %s\n", g_traceroute.current_IP->name);
         else if (code > 0)
         {
             struct timeval tv;
@@ -60,7 +60,7 @@ int scan(int ttl, char buffer[USHRT_MAX])
             tv.tv_usec -= (code % 1000) * 1000;
 
             strftime(buf, sizeof(buf), "%c", localtime(&tv.tv_sec));
-            printf("Host %s up since %s\n", g_traceroute.current_IP->destination.name, buf);
+            printf("Host %s up since %s\n", g_traceroute.current_IP->name, buf);
         }
     }
     return (code);
@@ -81,16 +81,16 @@ void traceroute(t_scan_type type)
 
     if (type == TIMESTAMP)
     {
-        if (g_scan.family == AF_INET6)
+        if (g_scan.options.family == AF_INET6)
             error(1, "Timestamping is not supported with IPv6.\n");
         icmp->type = ICMP_TIMESTAMP;
     }
     else
-        icmp->type = g_scan.family == AF_INET ? ICMP_ECHO : ICMP6_ECHO_REQUEST;
+        icmp->type = g_scan.options.family == AF_INET ? ICMP_ECHO : ICMP6_ECHO_REQUEST;
     icmp->un.echo.id = htons(4242);
     icmp->checksum = checksum((unsigned short *)buffer, g_traceroute.datalen);
 
-    for (g_traceroute.current_IP = g_scan.IPs; g_traceroute.current_IP != NULL; g_traceroute.current_IP = g_traceroute.current_IP->next)
+    for (g_traceroute.current_IP = g_scan.ip; g_traceroute.current_IP != NULL; g_traceroute.current_IP = g_traceroute.current_IP->next)
         if (type == TRACEROUTE)
         {
             bool got_reply = 0;

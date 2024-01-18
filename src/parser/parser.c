@@ -71,54 +71,53 @@ void parse_port_range(char *ports) // need to change and send
     if (base < 0 || base > 65535)
         error(2, "usage: %d: invalid port\n", base);
     else if (delimiter == NULL)
-        g_scan.options.ports[base] = true;
+        g_scan.options.port[base] = true;
     else if (max < 0 || max > USHRT_MAX)
         error(2, "usage: %d: invalid port\n", max);
     else if (base > max)
         error(2, "usage: %d-%d: min port must be less than max port\n", base, max);
     else
         for (int i = base; i <= max; i++)
-            g_scan.options.ports[i] = true;
+            g_scan.options.port[i] = true;
 
     int amount = 0;
     for (int i = 0; i <= USHRT_MAX; i++)
-        if (g_scan.options.ports[i])
+        if (g_scan.options.port[i])
             amount++;
 
     if (amount > 1024)
         error(2, "usage: %s: port range exceeding 1024\n", ports);
-    g_scan.options.ports_count = amount;
+    g_scan.options.port_count = amount;
 }
 
 void parse_technique(char *technique)
 {
     for (unsigned char i = 0; i < ft_strlen(technique); i++)
     {
-        g_scan.options.techniques_count++;
-
         switch (technique[i])
         {
         case 'A':
-            g_scan.options.techniques[ACK] = true;
+            g_scan.options.technique[ACK] = true;
             break;
         case 'S':
-            g_scan.options.techniques[SYN] = true;
+            g_scan.options.technique[SYN] = true;
             break;
         case 'F':
-            g_scan.options.techniques[FIN] = true;
+            g_scan.options.technique[FIN] = true;
             break;
         case 'N':
-            g_scan.options.techniques[NUL] = true;
+            g_scan.options.technique[NUL] = true;
             break;
         case 'X':
-            g_scan.options.techniques[XMAS] = true;
+            g_scan.options.technique[XMAS] = true;
             break;
         case 'U':
-            g_scan.options.techniques[UDP] = true;
+            g_scan.options.technique[UDP] = true;
             break;
         default:
             error(2, "usage: %c: unknown technique\n", technique[i]);
         }
+        g_scan.options.technique_count++;
     }
 }
 
@@ -175,7 +174,7 @@ void flag_parser(unsigned short *index, char *argv[])
         break;
 
     case '6':
-        g_scan.family = AF_INET6;
+        g_scan.options.family = AF_INET6;
         break;
 
     case 'u':
@@ -209,19 +208,19 @@ void print_stats()
     bool first = true;
 
     printf("Address: ");
-    for (t_IP *ip = g_scan.IPs; ip != NULL; ip = ip->next)
+    for (t_IP *ip = g_scan.ip; ip != NULL; ip = ip->next)
     {
         if (first)
             first = false;
         else
             printf(", ");
-        printf("%s", ip->destination.name);
+        printf("%s", ip->name);
     }
     printf("\n");
 
     printf("Techniques: ");
     for (unsigned char i = 0; i < TECHNIQUE_COUNT; i++)
-        if (g_scan.options.techniques[i])
+        if (g_scan.options.technique[i])
             printf("%s ", get_technique_name(i));
     printf("\n");
 
@@ -229,13 +228,13 @@ void print_stats()
 
     printf("Port count: ");
     if (!g_scan.options.verbose)
-        printf("%d\n", g_scan.options.ports_count);
+        printf("%d\n", g_scan.options.port_count);
     else
     {
         first = true;
         int amount = 0;
         for (int i = 0; i <= USHRT_MAX; i++)
-            if (g_scan.options.ports[i])
+            if (g_scan.options.port[i])
                 amount++;
             else if (amount != 0) {
                 if (first)
@@ -261,7 +260,7 @@ void init(int argc, char *argv[])
         error(1, "usage: You need to be root to run this program\n");
 
     // Set default family to IPv4
-    g_scan.family = AF_INET;
+    g_scan.options.family = AF_INET;
 
     // Parse flags
     unsigned short index;
@@ -269,22 +268,22 @@ void init(int argc, char *argv[])
         flag_parser(&index, argv);
 
     // If no techniques specified, scan all
-    if (g_scan.options.techniques_count == 0)
+    if (g_scan.options.technique_count == 0)
     {
-        ft_memset(g_scan.options.techniques, true, TECHNIQUE_COUNT);
-        g_scan.options.techniques_count = TECHNIQUE_COUNT;
+        ft_memset(g_scan.options.technique, true, TECHNIQUE_COUNT);
+        g_scan.options.technique_count = TECHNIQUE_COUNT;
     }
 
     // If no port range specified, scan 1-1024
-    if (g_scan.options.ports_count == 0)
+    if (g_scan.options.port_count == 0)
     {
         for (unsigned short i = PORT_MIN; i <= PORT_MAX; i++)
-            g_scan.options.ports[i] = true;
-        g_scan.options.ports_count = PORT_MAX - PORT_MIN + 1;
+            g_scan.options.port[i] = true;
+        g_scan.options.port_count = PORT_MAX - PORT_MIN + 1;
     }
 
     // If -f is not specified, the last argument is the host
-    if (g_scan.IPs == NULL)
+    if (g_scan.ip == NULL)
     {
         if (index != argc - 1)
             usage(argv[0]);
@@ -293,13 +292,13 @@ void init(int argc, char *argv[])
 
     // If the amount of threads is less than the amount of techniques, use the amount of techniques
     // We do this because we assume at least one thread per technique (if threads are used)
-    if (g_scan.options.thread_count != 0 && g_scan.options.thread_count < g_scan.options.techniques_count) {
-        g_scan.options.thread_count = g_scan.options.techniques_count;
-        fprintf(stderr, "Warning: Not enough threads, using %d instead\n\n", g_scan.options.techniques_count);
+    if (g_scan.options.thread_count != 0 && g_scan.options.thread_count < g_scan.options.technique_count) {
+        g_scan.options.thread_count = g_scan.options.technique_count;
+        fprintf(stderr, "Warning: Not enough threads, using %d instead\n\n", g_scan.options.technique_count);
     }
 
     // Get interface
-    g_scan.interface = get_interface(g_scan.family);
+    g_scan.interface = get_interface(g_scan.options.family);
 
     print_stats();
 }

@@ -19,20 +19,20 @@ char *get_service_name(unsigned short port, bool udp)
 
 void print_result()
 {
-    for (t_IP *ip = g_scan.IPs; ip; ip = ip->next) {
+    for (t_IP *ip = g_scan.ip; ip; ip = ip->next) {
         if (ip->is_down)
             continue;
-            
-        printf("\nResults for %s\n", ip->destination.name);
+
+        printf("\nResults for %s\n", ip->name);
         for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
-            if (g_scan.options.techniques[technique]) {
+            if (g_scan.options.technique[technique]) {
                 unsigned short amount[UNFILTERED + 1] = {0};
                 t_status default_status = UNSCANNED;
 
                 printf("%s", get_technique_name(technique));
                 // Calculate how many times each status appears for this technique
                 for (int i = 0; i <= USHRT_MAX; i++)
-                    if (g_scan.options.ports[i])
+                    if (g_scan.options.port[i])
                         amount[ip->status[technique][i]]++;
 
                 //get the default status
@@ -52,12 +52,12 @@ void print_result()
                         amount[type] = 0;
                     }
 
-                if (printed == g_scan.options.ports_count)
+                if (printed == g_scan.options.port_count)
                     continue;
 
                 printf("\tPORT\tSERVICE\t\tSTATE\n");
                 for (int i = 0; i <= USHRT_MAX; i++)
-                    if (g_scan.options.ports[i] && amount[ip->status[technique][i]] > 0) {
+                    if (g_scan.options.port[i] && amount[ip->status[technique][i]] > 0) {
                         printf("\t%d\t%-15s\t", i, get_service_name(i, technique == UDP));
                         print_status_name(ip->status[technique][i]);
                     }

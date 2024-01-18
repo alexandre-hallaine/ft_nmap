@@ -11,7 +11,7 @@
 int create_socket(int protocol)
 {
     // Socket for sending TCP / UDP packets
-	int sock = socket(g_scan.family, SOCK_RAW, protocol);
+	int sock = socket(g_scan.options.family, SOCK_RAW, protocol);
 	if (sock == -1)
 		error(1, "socket: %s\n", strerror(errno));
 
@@ -21,10 +21,10 @@ int create_socket(int protocol)
 		error(1, "setsockopt: %s\n", strerror(errno));
 
     // Bind the socket to the interface
-	if (g_scan.family == AF_INET)
-		bind(sock, (struct sockaddr *)&g_scan.interface.in, sizeof(g_scan.interface.in));
+	if (g_scan.options.family == AF_INET)
+		bind(sock, (struct sockaddr *)&g_scan.interface.ipv4, sizeof(g_scan.interface.ipv4));
 	else
-		bind(sock, (struct sockaddr *)&g_scan.interface.in6, sizeof(g_scan.interface.in6));
+		bind(sock, (struct sockaddr *)&g_scan.interface.ipv6, sizeof(g_scan.interface.ipv6));
 	return sock;
 }
 
@@ -33,11 +33,11 @@ void *routine(void *arg)
     t_options *options = arg;
     t_technique technique;
     for (technique = 0; technique < TECHNIQUE_COUNT; technique++)
-        if (options->techniques[technique])
+        if (options->technique[technique])
             break;
 
     // Create a packet containing the header of the protocol we want to use (TCP or UDP)
-    t_packet packet = create_packet(technique);
+    t_packet_header packet = create_packet(technique);
     unsigned short packet_size;
     int protocol;
 
@@ -56,13 +56,13 @@ void *routine(void *arg)
     // Create a raw socket for sending the packet
     int sock = create_socket(protocol);
 
-    for (t_IP *IP = g_scan.IPs; IP != NULL; IP = IP->next)
+    for (t_IP *IP = g_scan.ip; IP != NULL; IP = IP->next)
     {
         if (IP->is_down)
             continue;
 
         for (int port = 0; port <= USHRT_MAX; port++)
-            if (options->ports[port])
+            if (options->port[port])
             {
                 // Set a default status for the port
                 IP->status[technique][port] = FILTERED;
@@ -83,7 +83,7 @@ void *routine(void *arg)
                 calculate_checksum(protocol, &packet, packet_size, IP);
 
                 // Send the packet
-                if (sendto(sock, &packet, packet_size, 0, &IP->destination.addr.addr, IP->destination.addrlen) == -1)
+                if (sendto(sock, &packet, packet_size, 0, &IP->addr.base, IP->addrlen) == -1)
                     error(1, "sendto: %s\n", strerror(errno));
                 ft_usleep(1000);
             }
@@ -115,13 +115,13 @@ void thread_send() {
     int id = 0;
 
     int chunks[TECHNIQUE_COUNT];
-    dispatch(g_scan.options.thread_count, chunks, (t_range){0, TECHNIQUE_COUNT}, g_scan.options.techniques);
+    dispatch(g_scan.options.thread_count, chunks, (t_range){0, TECHNIQUE_COUNT}, g_scan.options.technique);
 
     for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
-        if (g_scan.options.techniques[technique])
+        if (g_scan.options.technique[technique])
         {
             int threads[chunks[technique]];
-            dispatch(g_scan.options.ports_count, threads, (t_range){0, chunks[technique]}, NULL);
+            dispatch(g_scan.options.port_count, threads, (t_range){0, chunks[technique]}, NULL);
 
             int current = 0;
             for (int thread_no = 0; thread_no < chunks[technique]; thread_no++) {
@@ -131,16 +131,16 @@ void thread_send() {
                 int amount = threads[thread_no];
 
                 for (int i = 0; i < TECHNIQUE_COUNT; i++)
-                    range->techniques[i] = false;
-                range->techniques[technique] = true;
+                    range->technique[i] = false;
+                range->technique[technique] = true;
 
                 for (int i = 0; i <= USHRT_MAX; i++)
-                    range->ports[i] = false;
+                    range->port[i] = false;
 
                 for (; current <= USHRT_MAX && amount != 0; current++)
-                    if (g_scan.options.ports[current])
+                    if (g_scan.options.port[current])
                     {
-                        range->ports[current] = true;
+                        range->port[current] = true;
                         amount--;
                     }
 

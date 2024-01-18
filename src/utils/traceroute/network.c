@@ -7,7 +7,7 @@
 
 void generate_socket()
 {
-    g_traceroute.socket = socket(g_scan.family, SOCK_RAW, g_scan.family == AF_INET ? IPPROTO_ICMP : IPPROTO_ICMPV6);
+    g_traceroute.socket = socket(g_scan.options.family, SOCK_RAW, g_scan.options.family == AF_INET ? IPPROTO_ICMP : IPPROTO_ICMPV6);
     if (g_traceroute.socket < 0)
         error(1, "socket: %s\n", strerror(errno));
 
@@ -15,14 +15,14 @@ void generate_socket()
     setsockopt(g_traceroute.socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0 ? error(1, "setsockopt: %s\n", strerror(errno)) : 0;
 
     int on = 1;
-    if (g_scan.family != AF_INET && setsockopt(g_traceroute.socket, SOL_IPV6, IPV6_RECVPKTINFO, &on, sizeof(on)) < 0)
+    if (g_scan.options.family != AF_INET && setsockopt(g_traceroute.socket, SOL_IPV6, IPV6_RECVPKTINFO, &on, sizeof(on)) < 0)
         error(1, "setsockopt: %s\n", strerror(errno));
 }
 
 void update_ttl(unsigned int ttl)
 {
     int ret;
-    if (g_scan.family == AF_INET)
+    if (g_scan.options.family == AF_INET)
         ret = setsockopt(g_traceroute.socket, SOL_IP, IP_TTL, &ttl, sizeof(ttl));
     else
         ret = setsockopt(g_traceroute.socket, SOL_IPV6, IPV6_UNICAST_HOPS, &ttl, sizeof(ttl));

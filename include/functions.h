@@ -7,7 +7,7 @@
 void error(int code, char *fmt, ...);
 char *get_technique_name(t_technique technique);
 void print_status_name(t_status status);
-void add_IP(t_addrinfo addr);
+void add_IP(t_IP addr);
 void free_IPs();
 int is_number(char *str);
 
@@ -29,18 +29,18 @@ int ft_atoi(const char *str);
 int get_next_line(int fd, char **line);
 
 // address.c
-t_addr get_interface(int family);
-t_addrinfo get_info(char *host);
+t_sockaddr get_interface(int family);
+t_IP get_info(char *host);
 
 // parser.c
 void init(int argc, char *argv[]);
 
 // packet.c
-t_packet create_packet(t_technique technique);
+t_packet_header create_packet(t_technique technique);
 
 // checksum.c
 unsigned short checksum(unsigned short *addr, size_t len);
-void calculate_checksum(u_int8_t protocol, t_packet *packet, unsigned short packet_size, t_IP *IP);
+void calculate_checksum(u_int8_t protocol, t_packet_header *packet, unsigned short packet_size, t_IP *IP);
 
 // send.c
 void *routine(void *arg);

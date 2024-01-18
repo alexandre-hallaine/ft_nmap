@@ -1,8 +1,8 @@
 #include "types.h"
 
-t_packet create_packet(t_technique technique)
+t_packet_header create_packet(t_technique technique)
 {
-    t_packet packet = {0};
+    t_packet_header packet = {0};
 
     // For UDP, we only need to set the source port and the length
     if (technique == UDP)

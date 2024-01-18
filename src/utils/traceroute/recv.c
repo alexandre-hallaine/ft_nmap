@@ -13,7 +13,7 @@
 
 int check_packet_icmp(char *buffer)
 {
-    if (g_scan.family == AF_INET)
+    if (g_scan.options.family == AF_INET)
         buffer += sizeof(struct iphdr); // when receiving in ipv4 there is an ip header before the icmp header
     struct icmphdr *icmp = (struct icmphdr *)buffer;
 
@@ -21,7 +21,7 @@ int check_packet_icmp(char *buffer)
     {
         struct icmphdr *icmp_sent;
 
-        if (g_scan.family == AF_INET)
+        if (g_scan.options.family == AF_INET)
         {
             struct iphdr *ip = (struct iphdr *)(icmp + 1);
             icmp_sent = (struct icmphdr *)(ip + 1);
@@ -58,7 +58,7 @@ int check_packet_icmp(char *buffer)
 int recv_packet(struct timeval last)
 {
     size_t size = sizeof(struct icmphdr) + sizeof(struct udphdr);
-    if (g_scan.family == AF_INET)
+    if (g_scan.options.family == AF_INET)
         size += sizeof(struct iphdr) * 2;
     else
         size += sizeof(struct ip6_hdr);
@@ -86,7 +86,7 @@ int recv_packet(struct timeval last)
 
 
     if (g_scan.options.verbose == 2) {
-        printf("%s", g_traceroute.current_IP->destination.name);
+        printf("%s", g_traceroute.current_IP->name);
         printf(" %.3fms\n", (time.tv_sec - last.tv_sec) * 1000.0 + (time.tv_usec - last.tv_usec) / 1000.0);
     }
     return ret;

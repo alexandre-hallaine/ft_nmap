@@ -10,13 +10,13 @@ t_scan g_scan = {0};
 void timeout()
 {
     pcap_breakloop(g_scan.handle);
-    g_scan.stop = true;
+    g_scan.stop_pcap = true;
 }
 
 void check_down()
 {
     bool all_down = true;
-    for (t_IP *IP = g_scan.IPs; IP != NULL; IP = IP->next)
+    for (t_IP *IP = g_scan.ip; IP != NULL; IP = IP->next)
         if (!IP->is_down)
         {
             all_down = false;
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
         thread_send();
     else {
         for (t_technique technique = 0; technique < TECHNIQUE_COUNT; technique++)
-            if (g_scan.options.techniques[technique])
+            if (g_scan.options.technique[technique])
             {
                 if (g_scan.options.verbose)
                 {
@@ -77,8 +77,8 @@ int main(int argc, char *argv[])
                     error(1, "main: ft_calloc failed\n");
                 ft_memcpy(options, &g_scan.options, sizeof(t_options));
                 for (t_technique i = 0; i < TECHNIQUE_COUNT; i++)
-                    options->techniques[i] = false;
-                options->techniques[technique] = true;
+                    options->technique[i] = false;
+                options->technique[technique] = true;
                 routine(options);
             }
         if (g_scan.options.verbose)
@@ -89,8 +89,7 @@ int main(int argc, char *argv[])
     signal(SIGALRM, timeout);
     // In case of no response, stop the scan after 30 seconds
     alarm(15);
-    g_scan.stop = false;
-    while (!g_scan.stop) {
+    while (!g_scan.stop_pcap) {
         pcap_dispatch(g_scan.handle, -1, packet_handler, NULL);
     }
     if (g_scan.options.verbose)
