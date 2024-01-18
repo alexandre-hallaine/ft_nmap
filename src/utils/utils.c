@@ -68,7 +68,7 @@ char *get_technique_name(t_technique technique)
     case FIN:
         return "FIN";
     case NUL:
-        return "NUL";
+        return "NULL";
     case XMAS:
         return "XMAS";
     case UDP:
