@@ -64,6 +64,7 @@ void thread_send();
 
 // result.c
 void print_result();
+void print_time(struct timeval tv);
 
 // receive.c
 void packet_handler(unsigned char *, const struct pcap_pkthdr *, const unsigned char *data);

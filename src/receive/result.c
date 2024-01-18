@@ -17,6 +17,14 @@ char *get_service_name(unsigned short port, bool udp)
     return "unknown";
 }
 
+void print_time(struct timeval tv)
+{
+    struct timeval tv2;
+    gettimeofday(&tv2, NULL);
+    double time = (tv2.tv_sec - tv.tv_sec) + (tv2.tv_usec - tv.tv_usec) / 1000000.0;
+    printf("\nScan finished in %.2f seconds\n", time);
+}
+
 void print_result()
 {
     for (t_IP *ip = g_scan.ip; ip; ip = ip->next) {

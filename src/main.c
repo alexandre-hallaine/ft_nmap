@@ -40,14 +40,10 @@ int main(int argc, char *argv[])
     if (g_scan.options.verbose)
         printf("\n");
 
-    struct timeval tv2;
-    gettimeofday(&tv2, NULL);
-    double time = (tv2.tv_sec - tv.tv_sec) + (tv2.tv_usec - tv.tv_usec) / 1000000.0;
-    printf("\nScan finished in %.2f seconds\n", time);
-
     pcap_close(g_scan.handle);
 
     print_result();
+    print_time(tv);
 
     free_IPs();
     return(0);
