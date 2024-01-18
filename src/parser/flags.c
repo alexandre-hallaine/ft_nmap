@@ -19,7 +19,10 @@ void usage(char *program)
              "\t-r:\t\t\t\ttraceroute host before scanning\n"
              "\t-v:\t\t\t\tverbose mode\n"
              "\t-V:\t\t\t\tvery verbose mode\n"
-             "\t-m:\t\t\t\tcheck the uptime of the host\n", program);
+             "\t-m:\t\t\t\tcheck the uptime of the host\n"
+             "\n"
+             "arguments:\n"
+             "\t<host>:\t\t\t\thost to scan\n", program);
     exit(0);
 }
 
