@@ -1,6 +1,7 @@
 #include "functions.h"
 
 #include <unistd.h>
+#include <stdlib.h>
 
 void print_stats()
 {
@@ -71,7 +72,7 @@ void init(int argc, char *argv[])
     }
 
     // Get interface
-    g_scan.interface = get_interface(g_scan.options.family);
+    g_scan.interface = get_interface();
 
     // If no techniques specified, scan all
     if (g_scan.options.technique_count == 0)
@@ -99,6 +100,26 @@ void init(int argc, char *argv[])
         g_scan.options.thread_count = g_scan.options.port_count * g_scan.options.technique_count;
         fprintf(stderr, "Warning: Too many threads, using %d instead\n\n", g_scan.options.thread_count);
     }
+
+    g_scan.handle = pcap_open_live(NULL, BUFSIZ, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL);
+
+    char filter[BUFSIZ] = {0};
+    for (t_IP *ip = g_scan.ip; ip != NULL; ip = ip->next)
+    {
+        char ip_str[INET6_ADDRSTRLEN] = {0};
+        inet_ntop(g_scan.options.family, g_scan.options.family == AF_INET ? (void *)&ip->addr.ipv4.sin_addr : (void *)&ip->addr.ipv6.sin6_addr, ip_str, sizeof(ip_str));
+
+        ft_strcat(filter, "host ");
+        ft_strcat(filter, ip_str);
+        if (ip->next)
+            ft_strcat(filter, " or ");
+    }
+    printf("Filter: %s\n", filter);
+
+    struct bpf_program fp = {0};
+    pcap_compile(g_scan.handle, &fp, filter, 1, PCAP_NETMASK_UNKNOWN);
+    pcap_setfilter(g_scan.handle, &fp);
+    free(fp.bf_insns);
 
     print_stats();
 }

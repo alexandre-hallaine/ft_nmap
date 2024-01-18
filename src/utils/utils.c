@@ -48,25 +48,13 @@ void add_IP(t_IP addr) {
     if (!new_node)
         error(1, "add_to_list: ft_calloc failed\n");
     ft_memcpy(new_node, &addr, sizeof(t_IP));
-
     new_node->next = NULL;
 
-    if (!g_scan.ip)
+    if (head == NULL)
         g_scan.ip = new_node;
-    else {
-        ft_strcat(g_scan.filter, " or ");
+    else
         head->next = new_node;
-    }
     g_scan.ip_count++;
-
-    char ip[INET6_ADDRSTRLEN] = {0};
-    if (g_scan.options.family == AF_INET)
-        inet_ntop(g_scan.options.family, &addr.addr.ipv4.sin_addr, ip, sizeof(ip));
-    else if (g_scan.options.family == AF_INET6)
-        inet_ntop(g_scan.options.family, &addr.addr.ipv6.sin6_addr, ip, sizeof(ip));
-
-    ft_strcat(g_scan.filter, "src ");
-    ft_strcat(g_scan.filter, ip);
 }
 
 char *get_technique_name(t_technique technique)

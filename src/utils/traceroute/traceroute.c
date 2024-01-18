@@ -68,6 +68,18 @@ int scan(int ttl, char buffer[USHRT_MAX])
 
 void traceroute(t_scan_type type)
 {
+    switch (type)
+    {
+        case TRACEROUTE:
+            printf("Sending traceroute...\n");
+            break;
+        case PING:
+            printf("Sending ping...\n");
+            break;
+        case TIMESTAMP:
+            printf("Sending timestamp...\n");
+            break;
+    }
 
     g_traceroute.type = type;
     generate_socket();

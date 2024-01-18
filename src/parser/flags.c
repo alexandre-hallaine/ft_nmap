@@ -129,6 +129,8 @@ void parse_file(char *file)
             add_IP(get_ip(line));
         free(line);
     }
+    if (ft_strlen(line) != 0)
+        add_IP(get_ip(line));
     free(line);
 
     fclose(fp);

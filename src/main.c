@@ -3,7 +3,6 @@
 
 #include <signal.h>
 #include <unistd.h>
-#include <stdlib.h>
 
 t_scan g_scan = {0};
 
@@ -18,30 +17,13 @@ int main(int argc, char *argv[])
     init(argc, argv);
 
     if (g_scan.options.ping)
-    {
-        printf("Starting ping...\n");
         traceroute(PING);
-        check_down();
-    }
-
+    check_down();
     if (g_scan.options.traceroute)
-    {
-        printf("Starting traceroute...\n");
         traceroute(TRACEROUTE);
-        check_down();
-    }
-
+    check_down();
     if (g_scan.options.timestamp)
-    {
-        printf("Starting timestamp...\n");
         traceroute(TIMESTAMP);
-    }
-
-    g_scan.handle = pcap_open_live(NULL, BUFSIZ, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL);
-    struct bpf_program fp = {0};
-    pcap_compile(g_scan.handle, &fp, g_scan.filter, 1, PCAP_NETMASK_UNKNOWN);
-    pcap_setfilter(g_scan.handle, &fp);
-    free(fp.bf_insns);
 
     struct timeval tv;
     gettimeofday(&tv, NULL);

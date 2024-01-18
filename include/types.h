@@ -113,9 +113,9 @@ typedef struct
     t_IP *ip;
     int ip_count;
 
-    char filter[BUFSIZ];
     pcap_t *handle;
     bool stop_pcap;
+    struct timeval tv;
 } t_scan;
 
 extern t_scan g_scan;
