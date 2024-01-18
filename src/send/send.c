@@ -157,5 +157,5 @@ void thread_send() {
         pthread_join(thread[i], NULL);
 
     if (g_scan.options.verbose == 1)
-        printf("\rEvery packets have been sent.   \n");
+        printf("\r%-64s\n", "Every packets have been sent.");
 }
