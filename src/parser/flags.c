@@ -7,11 +7,12 @@
 void usage(char *program)
 {
     printf("usage: %s [options] <host>\n"
+
              "options:\n"
              "\t-h:\t\t\t\tdisplay this help\n"
              "\t-p <ports>:\t\t\tscan the specified ports (default: 1-1024, eg. 1-5,80)\n"
              "\t-s <techniques>:\t\tscan with the specified techniques (default: ASFNXU)\n"
-             "\t\t\t\t\tA: ACK, S: SYN, F: FIN, N: NUL, X: XMAS, U: UDP\n"
+             "\t\t\t\t\tA: ACK, S: SYN, F: FIN, N: NULL, X: XMAS, U: UDP\n"
              "\t-f <file>:\t\t\tscan the specified hosts within the file (<host> not needed)\n"
              "\t-t <threads>:\t\t\tscan with the specified amount of threads (default: 0)\n"
              "\t-6:\t\t\t\tuse IPv6\n"
@@ -19,7 +20,9 @@ void usage(char *program)
              "\t-r:\t\t\t\ttraceroute host before scanning\n"
              "\t-v:\t\t\t\tverbose mode\n"
              "\t-V:\t\t\t\tvery verbose mode\n"
-             "\t-m:\t\t\t\tcheck the uptime of the host\n", program);
+             "\t-m:\t\t\t\tcheck the uptime of the host\n"
+
+             "Made with ❤️ by @alexandre-hallaine and @Assxios\n", program);
     exit(0);
 }
 
